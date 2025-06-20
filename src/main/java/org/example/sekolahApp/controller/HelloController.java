@@ -1,4 +1,4 @@
-package org.example.limbad;
+package org.example.sekolahApp.controller;
 
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;

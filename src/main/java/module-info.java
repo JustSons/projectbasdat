@@ -1,8 +1,11 @@
-module org.example.limbad {
+module org.example.sekolahApp {
     requires javafx.controls;
     requires javafx.fxml;
+    requires java.sql;
 
 
-    opens org.example.limbad to javafx.fxml;
-    exports org.example.limbad;
+    opens org.example.sekolahApp to javafx.fxml;
+    exports org.example.sekolahApp;
+    exports org.example.sekolahApp.controller;
+    opens org.example.sekolahApp.controller to javafx.fxml;
 }
