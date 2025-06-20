@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+<TabPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="600.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.sekolahApp.controller.SiswaDashboardController">
+<tabs>
+<Tab text="Biodata">
+    <content>
+        <GridPane>
+            <!-- Labels untuk menampilkan nama, NIS, kelas, dll -->
+        </GridPane>
+    </content>
+</Tab>
+<Tab text="Jadwal Pelajaran">
+    <content>
+        <TableView fx:id="jadwalTableView">
+            <!-- Kolom: Hari, Jam, Mata Pelajaran, Guru -->
+        </TableView>
+    </content>
+</Tab>
+<Tab text="Lihat Nilai">
+    <content>
+        <TableView fx:id="nilaiTableView">
+            <!-- Kolom: Mata Pelajaran, Jenis Ujian, Nilai -->
+        </TableView>
+    </content>
+</Tab>
+</tabs>
+        </TabPane>

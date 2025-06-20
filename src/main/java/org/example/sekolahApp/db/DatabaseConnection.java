@@ -1,5 +1,5 @@
 // File: src/main/java/com/yourcompany/sekolahapp/db/DatabaseConnection.java
-package com.yourcompany.sekolahapp.db;
+package org.example.sekolahApp.db;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -12,7 +12,7 @@ public class DatabaseConnection {
     // Ganti dengan detail koneksi database Anda
     private static final String URL = "jdbc:postgresql://localhost:5432/sekolah_db";
     private static final String USER = "postgres"; // User default pgAdmin
-    private static final String PASSWORD = "your_postgres_password"; // Ganti dengan password Anda
+    private static final String PASSWORD = "postgres"; // Ganti dengan password Anda
 
     private static Connection connection = null;
 

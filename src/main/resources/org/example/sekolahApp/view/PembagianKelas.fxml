@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+<BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="600.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.sekolahApp.controller.PembagianKelasController">
+<top>
+<HBox spacing="10" alignment="CENTER_LEFT">
+    <Label text="Pilih Kelas:"/>
+    <ComboBox fx:id="kelasComboBox" prefWidth="200"/>
+</HBox>
+</top>
+<center>
+<HBox spacing="20" alignment="CENTER">
+    <VBox>
+        <Label text="Siswa Tersedia"/>
+        <ListView fx:id="siswaTersediaListView"/>
+    </VBox>
+    <VBox spacing="10" alignment="CENTER">
+        <Button fx:id="pindahButton" onAction="#handlePindahKeKelas" text=">>"/>
+        <Button fx:id="keluarkanButton" onAction="#handleKeluarkanDariKelas" text="<<"/>
+    </VBox>
+    <VBox>
+        <Label text="Siswa di Kelas Ini"/>
+        <ListView fx:id="siswaDiKelasListView"/>
+    </VBox>
+</HBox>
+</center>
+<bottom>
+<HBox alignment="CENTER_RIGHT">
+    <Button onAction="#handleSimpanPerubahan" text="Simpan Perubahan"/>
+    <Button onAction="#handleKembali" text="Kembali"/>
+</HBox>
+</bottom>
+        </BorderPane>

@@ -2,6 +2,8 @@ module org.example.sekolahApp {
     requires javafx.controls;
     requires javafx.fxml;
     requires java.sql;
+    requires java.desktop;
+    requires jdk.jfr;
 
 
     opens org.example.sekolahApp to javafx.fxml;
