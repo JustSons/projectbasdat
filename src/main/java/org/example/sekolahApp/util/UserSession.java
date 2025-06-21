@@ -30,6 +30,11 @@ public class UserSession {
         this.referenceId = 0;
     }
 
+    public boolean isLoggedIn() {
+        // Method ini akan mengembalikan true jika userId bukan 0 (artinya ada user yang login)
+        return userId != 0;
+    }
+
     // Getters
     public int getUserId() { return userId; }
     public String getUsername() { return username; }

@@ -25,7 +25,11 @@
             <artifactId>javafx-fxml</artifactId>
             <version>22.0.1</version>
         </dependency>
-
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <version>42.7.3</version> <!-- Anda bisa menggunakan versi terbaru -->
+        </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-api</artifactId>
