@@ -72,11 +72,12 @@ public class KelolaSiswaController implements Initializable {
              Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
 
+            int count = 0; // Untuk menghitung data yang dimuat
             while (rs.next()) {
                 siswaList.add(new Siswa(
                         rs.getInt("siswa_id"),
                         rs.getString("nis"),
-                        rs.getString("nama_siswa"),
+                        rs.getString("nama_siswa"), // Pastikan nama kolom di DB persis "nama_siswa"
                         rs.getString("alamat"),
                         rs.getString("jenis_kelamin"),
                         rs.getString("agama"),
@@ -84,10 +85,19 @@ public class KelolaSiswaController implements Initializable {
                         rs.getString("nama_orang_tua"),
                         rs.getString("telepon_orang_tua")
                 ));
+                count++;
             }
+            System.out.println("DEBUG: loadSiswaData() selesai. Total siswa yang dimuat ke siswaList: " + count);
+            System.out.println("DEBUG: Ukuran siswaList setelah dimuat: " + siswaList.size());
+
+            // Pastikan setupSearchFilter() dipanggil ulang setelah data baru dimuat
+            setupSearchFilter(); // Ini akan memperbarui FilteredList/SortedList
+            // Jika ini belum ada di akhir loadSiswaData(), tambahkan!
+
         } catch (SQLException e) {
             e.printStackTrace();
             showAlert(Alert.AlertType.ERROR, "Database Error", "Gagal memuat data siswa.");
+            System.err.println("DEBUG: Terjadi SQLException saat memuat data siswa: " + e.getMessage());
         }
     }
 
@@ -111,7 +121,7 @@ public class KelolaSiswaController implements Initializable {
 
         SortedList<Siswa> sortedData = new SortedList<>(filteredData);
         sortedData.comparatorProperty().bind(siswaTableView.comparatorProperty());
-        siswaTableView.setItems(sortedData);
+        siswaTableView.setItems(sortedData); // Pastikan ini selalu dipanggil
     }
 
     private void populateForm(Siswa siswa) {
@@ -148,7 +158,7 @@ public class KelolaSiswaController implements Initializable {
     }
 
     private void insertSiswa() {
-        String insertSiswaSQL = "INSERT INTO siswa (nis, nama_siswa, alamat, jenis_kelamin, agama, tanggal_lahir, nama_orang_tua, telepon_orang_tua) VALUES (?, ?, ?, ?, ?, ?, ?, ?); ALTER TABLE siswa ADD CONSTRAINT UQ_siswa_nis UNIQUE (nis);";
+        String insertSiswaSQL = "INSERT INTO siswa (nis, nama_siswa, alamat, jenis_kelamin, agama, tanggal_lahir, nama_orang_tua, telepon_orang_tua) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
         String insertUserSQL = "INSERT INTO users (username, password_hash, role, reference_id) VALUES (?, ?, 'siswa', ?)";
 
         Connection conn = null;
@@ -292,7 +302,7 @@ public class KelolaSiswaController implements Initializable {
     @FXML
     private void handleBack() {
         try {
-            SceneManager.getInstance().loadScene("/com/yourcompany/sekolahapp/view/AdminDashboard.fxml", 800, 600);
+            SceneManager.getInstance().loadScene("/org/example/sekolahApp/view/admin_dashboard.fxml", 800, 600);
         } catch (IOException e) {
             e.printStackTrace();
         }
