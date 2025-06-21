@@ -21,23 +21,23 @@ public class LoginController {
     @FXML
     protected void handleLoginButtonAction() {
         String username = usernameField.getText();
-        String password = passwordField.getText();
-        String hashedPassword = PasswordUtil.hashPassword(password);
+        String password_hash = passwordField.getText();
+        String hashedPassword = PasswordUtil.hashPassword(password_hash);
 
-        if (username.isEmpty() || password.isEmpty()) {
+        if (username.isEmpty() || password_hash.isEmpty()) {
             showAlert(Alert.AlertType.ERROR, "Login Gagal", "Username dan password tidak boleh kosong.");
             return;
         }
 
         // TODO: Implement password hashing. Untuk saat ini, password disimpan sebagai plain text.
         // Dalam produksi, password harus di-hash. Contoh: String hashedPassword = hashFunction(password);
-        String sql = "SELECT role FROM users WHERE username = ? AND password_hash = ?";
+        String sql = "SELECT * FROM users WHERE username = ? AND password_hash = ?";
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
             pstmt.setString(1, username);
-            pstmt.setString(2, password); // Seharusnya `hashedPassword`
+            pstmt.setString(2, password_hash); // Seharusnya `hashedPassword`
 
             ResultSet rs = pstmt.executeQuery();
 
