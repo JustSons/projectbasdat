@@ -19,7 +19,7 @@
                         <Insets bottom="20.0" top="10.0" />
                     </VBox.margin>
                 </Label>
-
+                <Button fx:id="kelolaMapelButton" onAction="#handleKelolaMapelButton" text="Kelola Mata Pelajaran" />
                 <Button fx:id="kelolaSiswaButton" mnemonicParsing="false" onAction="#handleKelolaSiswa" prefWidth="180.0" text="Kelola Siswa" />
                 <Button fx:id="kelolaStaffButton" mnemonicParsing="false" onAction="#handleKelolaStaff" prefWidth="180.0" text="Kelola Guru &amp; Staff" />
                 <Button fx:id="kelolaTahunAjaranButton" mnemonicParsing="false" onAction="#handleKelolaTahunAjaran" prefWidth="180.0" text="Kelola Tahun Ajaran" /> <Button fx:id="kelolaKelasButton" mnemonicParsing="false" onAction="#handleKelolaKelas" prefWidth="180.0" text="Kelola Kelas (Master)" /> <Button fx:id="pembagianKelasButton" mnemonicParsing="false" onAction="#handlePembagianKelas" prefWidth="180.0" text="Pembagian Kelas" />

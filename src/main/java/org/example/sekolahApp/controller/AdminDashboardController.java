@@ -1,12 +1,14 @@
 package org.example.sekolahApp.controller;
 
 import org.example.sekolahApp.util.SceneManager;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import org.example.sekolahApp.util.UserSession;
 import javafx.fxml.Initializable;
+
 import java.io.IOException;
 import java.net.URL;
 import java.util.ResourceBundle;
@@ -17,8 +19,9 @@ public class AdminDashboardController implements Initializable {
     @FXML private Button kelolaStaffButton;
     @FXML private Button pembagianKelasButton;
     @FXML private Button kelolaJadwalButton;
-    @FXML private Button kelolaKelasButton; // Tombol untuk Kelola Kelas (Master)
-    @FXML private Button kelolaTahunAjaranButton; // Tombol baru untuk Kelola Tahun Ajaran
+    @FXML private Button kelolaKelasButton;
+    @FXML private Button kelolaTahunAjaranButton;
+    @FXML private Button kelolaMapelButton; // Tombol baru untuk Kelola Mata Pelajaran
     @FXML private Button cetakRaporButton;
     @FXML private Button masukkanNilaiButton;
     @FXML private Label welcomeLabel;
@@ -28,7 +31,6 @@ public class AdminDashboardController implements Initializable {
     public void initialize(URL url, ResourceBundle resourceBundle) {
         UserSession session = UserSession.getInstance();
 
-        // Personalisasi Pesan Selamat Datang
         String welcomeText = "Selamat Datang";
         if (session.isAdmin()) {
             welcomeText += ", Admin!";
@@ -53,7 +55,8 @@ public class AdminDashboardController implements Initializable {
         pembagianKelasButton.setVisible(false);
         kelolaJadwalButton.setVisible(false);
         kelolaKelasButton.setVisible(false);
-        kelolaTahunAjaranButton.setVisible(false); // Sembunyikan secara default
+        kelolaTahunAjaranButton.setVisible(false);
+        kelolaMapelButton.setVisible(false); // Sembunyikan tombol mapel secara default
         cetakRaporButton.setVisible(false);
         masukkanNilaiButton.setVisible(false);
 
@@ -63,7 +66,8 @@ public class AdminDashboardController implements Initializable {
             pembagianKelasButton.setVisible(true);
             kelolaJadwalButton.setVisible(true);
             kelolaKelasButton.setVisible(true);
-            kelolaTahunAjaranButton.setVisible(true); // Admin bisa kelola tahun ajaran
+            kelolaTahunAjaranButton.setVisible(true);
+            kelolaMapelButton.setVisible(true); // Tampilkan untuk admin
         } else if (session.isGuru()) {
             kelolaJadwalButton.setVisible(true);
             masukkanNilaiButton.setVisible(true);
@@ -73,6 +77,18 @@ public class AdminDashboardController implements Initializable {
             cetakRaporButton.setVisible(true);
         }
     }
+
+    // --- Method yang ditambahkan untuk handle tombol baru ---
+    @FXML
+    void handleKelolaMapelButton(ActionEvent event) {
+        try {
+            // Arahkan ke file FXML baru yang sudah kita buat
+            SceneManager.getInstance().loadScene("/org/example/sekolahApp/view/kelola_matapelajaran.fxml");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
 
     @FXML
     private void handleKelolaSiswa() {
