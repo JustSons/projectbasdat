@@ -9,7 +9,7 @@ public class DatabaseConnection {
     // Ganti dengan detail koneksi database Anda
     private static final String URL = "jdbc:postgresql://localhost:5432/project_bd";
     private static final String USER = "postgres"; // User default pgAdmin
-    private static final String PASSWORD = "12345"; // Ganti dengan password Anda
+    private static final String PASSWORD = "1234"; // Ganti dengan password Anda
 
     // Hapus baris ini: private static Connection connection = null;
     // Hapus juga private constructor DatabaseConnection() {}

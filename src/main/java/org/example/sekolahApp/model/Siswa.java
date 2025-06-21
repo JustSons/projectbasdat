@@ -5,6 +5,8 @@ import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Siswa {
     private final IntegerProperty id;
@@ -18,6 +20,7 @@ public class Siswa {
     private final StringProperty teleponOrangTua;
     private final StringProperty kelasSaatIniNama;
     private final StringProperty status; // Pastikan field ini ada
+     private final List<Nilai> daftarNilai;
 
     // Constructor lengkap untuk saat membuat atau mengedit data siswa secara penuh
     public Siswa(int id, String nis, String nama, String alamat, String jenisKelamin, String agama, LocalDate tanggalLahir, String namaOrangTua, String teleponOrangTua) {
@@ -32,6 +35,7 @@ public class Siswa {
         this.teleponOrangTua = new SimpleStringProperty(teleponOrangTua);
         this.kelasSaatIniNama = new SimpleStringProperty("");
         this.status = new SimpleStringProperty("Aktif"); // Default status
+        this.daftarNilai = new ArrayList<>();
     }
 
     // Constructor simpel untuk menampilkan di tabel (seperti di Kelola Kelulusan)
@@ -48,6 +52,7 @@ public class Siswa {
         this.teleponOrangTua = new SimpleStringProperty(null);
         this.kelasSaatIniNama = new SimpleStringProperty("");
         this.status = new SimpleStringProperty("Aktif");
+        this.daftarNilai = new ArrayList<>();
     }
 
 
@@ -86,4 +91,28 @@ public class Siswa {
     public StringProperty statusProperty() { return status; } // <--- METHOD PENTING YANG HILANG
 
     @Override public String toString() { return getNama(); }
+    public List<Nilai> getDaftarNilai() { return daftarNilai; }
+    public Nilai getNilaiByKonteks(String jenisUjian, String tahunAjaran, int semester) {
+        for (Nilai n : daftarNilai) {
+            if (n.getJenisUjian().equals(jenisUjian) &&
+                    n.getTahunAjaran().equals(tahunAjaran) &&
+                    n.getSemester() == semester) {
+                return n;
+            }
+        }
+        return null;
+    }
+
+    public void addOrUpdateNilai(Nilai nilaiBaru) {
+        Nilai nilaiLama = getNilaiByKonteks(
+                nilaiBaru.getJenisUjian(),
+                nilaiBaru.getTahunAjaran(),
+                nilaiBaru.getSemester()
+        );
+
+        if (nilaiLama != null) {
+            daftarNilai.remove(nilaiLama);
+        }
+        daftarNilai.add(nilaiBaru);
+    }
 }
