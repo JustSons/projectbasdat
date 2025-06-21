@@ -32,6 +32,21 @@ public class Siswa {
         this.kelasSaatIniNama = new SimpleStringProperty("");
     }
 
+    public Siswa(int id, String nis, String nama) {
+        this.id = new SimpleIntegerProperty(id);
+        this.nis = new SimpleStringProperty(nis);
+        this.nama = new SimpleStringProperty(nama);
+
+        // Atribut lain bisa di-set ke null atau nilai default agar tidak error
+        this.alamat = new SimpleStringProperty(null);
+        this.jenisKelamin = new SimpleStringProperty(null);
+        this.agama = new SimpleStringProperty(null);
+        this.tanggalLahir = null;
+        this.namaOrangTua = new SimpleStringProperty(null);
+        this.teleponOrangTua = new SimpleStringProperty(null);
+        this.kelasSaatIniNama = new SimpleStringProperty("");
+    }
+
     // Getters
     public int getId() { return id.get(); }
     public String getNis() { return nis.get(); }

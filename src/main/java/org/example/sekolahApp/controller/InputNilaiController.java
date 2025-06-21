@@ -8,7 +8,7 @@ public class InputNilaiController {
     @FXML
     private void handleBack() {
         try {
-            SceneManager.getInstance().loadScene("/org/example/sekolahApp/view/admin_dashboard.fxml", 800, 600);
+            SceneManager.getInstance().loadScene("/org/example/sekolahApp/view/admin_dashboard.fxml");
         } catch (IOException e) {
             e.printStackTrace();
         }

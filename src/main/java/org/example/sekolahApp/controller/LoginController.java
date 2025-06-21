@@ -37,7 +37,7 @@ public class LoginController {
             conn = DatabaseConnection.getConnection();
             try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
                 pstmt.setString(1, username);
-                pstmt.setString(2, hashedPassword);
+                pstmt.setString(2, password);
 
                 try (ResultSet rs = pstmt.executeQuery()) {
                     if (rs.next()) {
@@ -104,9 +104,9 @@ public class LoginController {
         } else if ("guru".equalsIgnoreCase(role) || "wali_kelas".equalsIgnoreCase(role)) {
             // SceneManager.getInstance().loadScene("/org/example.sekolahApp/view/GuruWaliKelasDashboard.fxml", 1024, 768);
             // Untuk sementara, tetap arahkan ke admin dashboard dan sesuaikan menu di sana
-            SceneManager.getInstance().loadScene("/org/example/sekolahApp/view/admin_dashboard.fxml", 1024, 768);
+            SceneManager.getInstance().loadScene("/org/example/sekolahApp/view/admin_dashboard.fxml");
         } else { // Admin
-            SceneManager.getInstance().loadScene("/org/example/sekolahApp/view/admin_dashboard.fxml", 1024, 768);
+            SceneManager.getInstance().loadScene("/org/example/sekolahApp/view/admin_dashboard.fxml");
         }
     }
 

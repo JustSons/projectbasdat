@@ -16,7 +16,7 @@ public class SceneManager {
         return instance;
     }
     public void setStage(Stage stage) { this.stage = stage; }
-    public void loadScene(String fxmlPath, int i, int i1) throws IOException {
+    public void loadScene(String fxmlPath) throws IOException {
         URL url = getClass().getResource(fxmlPath);
         if (url == null) throw new IOException("Cannot find FXML: " + fxmlPath);
         Parent root = FXMLLoader.load(url);

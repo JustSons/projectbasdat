@@ -16,7 +16,6 @@ import javafx.scene.control.cell.PropertyValueFactory;
 import java.io.IOException;
 import java.net.URL;
 import java.sql.*;
-import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Optional;
 import java.util.ResourceBundle;
@@ -302,7 +301,7 @@ public class KelolaSiswaController implements Initializable {
     @FXML
     private void handleBack() {
         try {
-            SceneManager.getInstance().loadScene("/org/example/sekolahApp/view/admin_dashboard.fxml", 800, 600);
+            SceneManager.getInstance().loadScene("/org/example/sekolahApp/view/admin_dashboard.fxml");
         } catch (IOException e) {
             e.printStackTrace();
         }

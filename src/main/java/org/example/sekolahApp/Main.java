@@ -1,13 +1,11 @@
 package org.example.sekolahApp;
 
 import javafx.stage.StageStyle;
-import org.example.sekolahApp.db.DatabaseConnection; // Pastikan import ini benar
 import org.example.sekolahApp.util.SceneManager;
 import javafx.application.Application;
 import javafx.stage.Stage;
 
 import java.io.IOException;
-import java.sql.SQLException; // Tambahkan import ini jika perlu
 
 public class Main extends Application {
 
@@ -18,7 +16,7 @@ public class Main extends Application {
 
         // Memuat FXML dari folder resources
         String fxmlPath = "/org/example/sekolahApp/view/Login.fxml";
-        SceneManager.getInstance().loadScene(fxmlPath, 600, 400); // Pastikan ukuran ini relevan
+        SceneManager.getInstance().loadScene(fxmlPath); // Pastikan ukuran ini relevan
         primaryStage.setMaximized(true);
         primaryStage.initStyle(StageStyle.UTILITY);
         primaryStage.show();

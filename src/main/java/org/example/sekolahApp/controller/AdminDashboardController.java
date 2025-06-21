@@ -77,7 +77,7 @@ public class AdminDashboardController implements Initializable {
     @FXML
     private void handleKelolaSiswa() {
         try {
-            SceneManager.getInstance().loadScene("/org/example/sekolahApp/view/KelolaSiswa.fxml", 1024, 768);
+            SceneManager.getInstance().loadScene("/org/example/sekolahApp/view/KelolaSiswa.fxml");
         } catch (IOException e) {
             e.printStackTrace();
             showAlert(Alert.AlertType.ERROR, "Error", "Gagal membuka menu Kelola Siswa.");
@@ -87,7 +87,7 @@ public class AdminDashboardController implements Initializable {
     @FXML
     private void handleKelolaStaff() {
         try {
-            SceneManager.getInstance().loadScene("/org/example/sekolahApp/view/KelolaStaff.fxml", 1024, 768);
+            SceneManager.getInstance().loadScene("/org/example/sekolahApp/view/KelolaStaff.fxml");
         } catch (IOException e) {
             e.printStackTrace();
             showAlert(Alert.AlertType.ERROR, "Error", "Gagal membuka menu Kelola Staff.");
@@ -97,7 +97,7 @@ public class AdminDashboardController implements Initializable {
     @FXML
     private void handlePembagianKelas() {
         try {
-            SceneManager.getInstance().loadScene("/org/example/sekolahApp/view/PembagianKelas.fxml", 1024, 768);
+            SceneManager.getInstance().loadScene("/org/example/sekolahApp/view/PembagianKelas.fxml");
         } catch (IOException e) {
             e.printStackTrace();
             showAlert(Alert.AlertType.ERROR, "Error", "Gagal membuka menu Pembagian Kelas.");
@@ -107,7 +107,7 @@ public class AdminDashboardController implements Initializable {
     @FXML
     private void handleKelolaJadwal() {
         try {
-            SceneManager.getInstance().loadScene("/org/example/sekolahApp/view/KelolaJadwal.fxml", 1024, 768);
+            SceneManager.getInstance().loadScene("/org/example/sekolahApp/view/KelolaJadwal.fxml");
         } catch (IOException e) {
             e.printStackTrace();
             showAlert(Alert.AlertType.ERROR, "Error", "Gagal membuka menu Kelola Jadwal.");
@@ -117,7 +117,7 @@ public class AdminDashboardController implements Initializable {
     @FXML
     private void handleKelolaKelas() { // Fungsi untuk tombol Kelola Kelas (Master)
         try {
-            SceneManager.getInstance().loadScene("/org/example/sekolahApp/view/KelolaKelas.fxml", 1024, 768);
+            SceneManager.getInstance().loadScene("/org/example/sekolahApp/view/KelolaKelas.fxml");
         } catch (IOException e) {
             e.printStackTrace();
             showAlert(Alert.AlertType.ERROR, "Error", "Gagal membuka menu Kelola Kelas.");
@@ -127,7 +127,7 @@ public class AdminDashboardController implements Initializable {
     @FXML
     private void handleKelolaTahunAjaran() { // Fungsi baru untuk tombol Kelola Tahun Ajaran
         try {
-            SceneManager.getInstance().loadScene("/org/example/sekolahApp/view/KelolaTahunAjaran.fxml", 1024, 768);
+            SceneManager.getInstance().loadScene("/org/example/sekolahApp/view/KelolaTahunAjaran.fxml");
         } catch (IOException e) {
             e.printStackTrace();
             showAlert(Alert.AlertType.ERROR, "Error", "Gagal membuka menu Kelola Tahun Ajaran.");
@@ -137,7 +137,7 @@ public class AdminDashboardController implements Initializable {
     @FXML
     private void handleMasukkanNilai() {
         try {
-            SceneManager.getInstance().loadScene("/org/example/sekolahApp/view/InputNilai.fxml", 1024, 768);
+            SceneManager.getInstance().loadScene("/org/example/sekolahApp/view/InputNilai.fxml");
         } catch (IOException e) {
             e.printStackTrace();
             showAlert(Alert.AlertType.ERROR, "Error", "Gagal membuka menu Input Nilai.");
@@ -147,7 +147,7 @@ public class AdminDashboardController implements Initializable {
     @FXML
     private void handleCetakRapor() {
         try {
-            SceneManager.getInstance().loadScene("/org/example/sekolahApp/view/CetakRapor.fxml", 1024, 768);
+            SceneManager.getInstance().loadScene("/org/example/sekolahApp/view/CetakRapor.fxml");
         } catch (IOException e) {
             e.printStackTrace();
             showAlert(Alert.AlertType.ERROR, "Error", "Gagal membuka menu Cetak Rapor.");
@@ -158,7 +158,7 @@ public class AdminDashboardController implements Initializable {
     private void handleLogout() {
         try {
             UserSession.getInstance().cleanUserSession();
-            SceneManager.getInstance().loadScene("/org/example/sekolahApp/view/Login.fxml", 500, 400);
+            SceneManager.getInstance().loadScene("/org/example/sekolahApp/view/Login.fxml");
         } catch (IOException e) {
             e.printStackTrace();
         }

@@ -106,7 +106,7 @@ public class KelolaStaffController implements Initializable {
                 String lowerCaseFilter = newValue.toLowerCase();
                 if (staff.getNamaStaff().toLowerCase().contains(lowerCaseFilter)) {
                     return true;
-                } else if (staff.getNip().toLowerCase().contains(lowerCaseFilter)) {
+                } else if (staff.getNip() != null && staff.getNip().toLowerCase().contains(lowerCaseFilter)) {
                     return true;
                 } else if (staff.getJabatan().toLowerCase().contains(lowerCaseFilter)) {
                     return true;
@@ -151,40 +151,19 @@ public class KelolaStaffController implements Initializable {
     }
 
     private void insertStaff() {
-        // Hapus 'staff_id' dari daftar kolom di SQL
+        // PERBAIKAN: Hapus 'staff_id' dari daftar kolom. Biarkan database yang mengisinya.
         String sql = "INSERT INTO staff (nip, nama_staff, jabatan, email, nomor_telepon, alamat, tanggal_lahir) VALUES (?, ?, ?, ?, ?, ?, ?)";
-        Connection conn = null;
-        try {
-            conn = DatabaseConnection.getConnection();
-            // Penting: Statement.RETURN_GENERATED_KEYS hanya relevan jika kamu ingin mengambil ID yang baru dibuat
-            // setelah insert, yang tidak kamu lakukan di sini untuk staff_id.
-            // Jika kamu tidak memerlukannya, cukup gunakan conn.prepareStatement(sql)
-            // Jika kamu ingin mengambil staff_id yang di-generate:
-            try (PreparedStatement pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-                setStaffStatementParameters(pstmt); // Ini akan mengisi 7 parameter
-                pstmt.executeUpdate();
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
-                // OPTIONAL: Jika kamu butuh ID staff yang baru dibuat, tambahkan ini:
-                // try (ResultSet generatedKeys = pstmt.getGeneratedKeys()) {
-                //     if (generatedKeys.next()) {
-                //         int newStaffId = generatedKeys.getInt(1);
-                //         System.out.println("Staff baru dengan ID: " + newStaffId);
-                //     }
-                // }
+            setStaffStatementParameters(pstmt); // Ini akan mengisi 7 parameter
+            pstmt.executeUpdate();
 
-                showAlert(Alert.AlertType.INFORMATION, "Sukses", "Data staff berhasil ditambahkan.");
-            }
+            showAlert(Alert.AlertType.INFORMATION, "Sukses", "Data staff berhasil ditambahkan.");
+
         } catch (SQLException e) {
             e.printStackTrace();
-            showAlert(Alert.AlertType.ERROR, "Database Error", "Gagal menambahkan staff. NIP mungkin sudah ada."); // Atau masalah duplikat ID
-        } finally {
-            if (conn != null) {
-                try {
-                    conn.close();
-                } catch (SQLException e) {
-                    e.printStackTrace();
-                }
-            }
+            showAlert(Alert.AlertType.ERROR, "Database Error", "Gagal menambahkan staff. NIP mungkin sudah ada.");
         }
         loadStaffData();
         clearForm();
@@ -192,26 +171,17 @@ public class KelolaStaffController implements Initializable {
 
     private void updateStaff() {
         String sql = "UPDATE staff SET nip = ?, nama_staff = ?, jabatan = ?, email = ?, nomor_telepon = ?, alamat = ?, tanggal_lahir = ? WHERE staff_id = ?";
-        Connection conn = null;
-        try {
-            conn = DatabaseConnection.getConnection();
-            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
-                setStaffStatementParameters(pstmt);
-                pstmt.setInt(8, selectedStaff.getStaffId()); // staff_id ada di parameter ke-8
-                pstmt.executeUpdate();
-                showAlert(Alert.AlertType.INFORMATION, "Sukses", "Data staff berhasil diperbarui.");
-            }
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            setStaffStatementParameters(pstmt);
+            pstmt.setInt(8, selectedStaff.getStaffId()); // staff_id ada di parameter ke-8 untuk WHERE clause
+            pstmt.executeUpdate();
+            showAlert(Alert.AlertType.INFORMATION, "Sukses", "Data staff berhasil diperbarui.");
+
         } catch (SQLException e) {
             e.printStackTrace();
             showAlert(Alert.AlertType.ERROR, "Database Error", "Gagal memperbarui data staff.");
-        } finally {
-            if (conn != null) {
-                try {
-                    conn.close();
-                } catch (SQLException e) {
-                    e.printStackTrace();
-                }
-            }
         }
         loadStaffData();
         clearForm();
@@ -232,15 +202,13 @@ public class KelolaStaffController implements Initializable {
 
         Optional<ButtonType> result = confirmAlert.showAndWait();
         if (result.isPresent() && result.get() == ButtonType.OK) {
-            String deleteUserSQL = "DELETE FROM users WHERE role IN ('guru', 'wali_kelas', 'admin') AND reference_id = ?"; // Hapus juga akun login terkait
+            String deleteUserSQL = "DELETE FROM users WHERE role IN ('guru', 'wali_kelas', 'admin') AND reference_id = ?";
             String deleteStaffSQL = "DELETE FROM staff WHERE staff_id = ?";
 
-            Connection conn = null;
-            try {
-                conn = DatabaseConnection.getConnection();
-                conn.setAutoCommit(false);
+            try (Connection conn = DatabaseConnection.getConnection()) {
+                conn.setAutoCommit(false); // Mulai transaksi
 
-                // Hapus dari tabel users dulu (jika ada)
+                // Hapus dari tabel users dulu
                 try (PreparedStatement pstmtUser = conn.prepareStatement(deleteUserSQL)) {
                     pstmtUser.setInt(1, staffToDelete.getStaffId());
                     pstmtUser.executeUpdate();
@@ -252,28 +220,13 @@ public class KelolaStaffController implements Initializable {
                     pstmtStaff.executeUpdate();
                 }
 
-                conn.commit();
+                conn.commit(); // Selesaikan transaksi jika semua berhasil
                 showAlert(Alert.AlertType.INFORMATION, "Sukses", "Staff berhasil dihapus.");
 
             } catch (SQLException e) {
-                if (conn != null) {
-                    try {
-                        conn.rollback();
-                    } catch (SQLException ex) {
-                        ex.printStackTrace();
-                    }
-                }
+                // Jika ada error, batalkan semua perubahan
                 e.printStackTrace();
                 showAlert(Alert.AlertType.ERROR, "Database Error", "Gagal menghapus staff.");
-            } finally {
-                if (conn != null) {
-                    try {
-                        conn.setAutoCommit(true);
-                        conn.close();
-                    } catch (SQLException e) {
-                        e.printStackTrace();
-                    }
-                }
             }
             loadStaffData();
             clearForm();
@@ -288,65 +241,50 @@ public class KelolaStaffController implements Initializable {
             return;
         }
 
+        if (selectedStaffUser.getTanggalLahir() == null) {
+            showAlert(Alert.AlertType.ERROR, "Data Tidak Lengkap", "Tanggal lahir staff wajib diisi untuk membuat password awal.");
+            return;
+        }
+
         Alert confirmAlert = new Alert(Alert.AlertType.CONFIRMATION);
         confirmAlert.setTitle("Buat Akun Login");
         confirmAlert.setHeaderText("Buat akun login untuk " + selectedStaffUser.getNamaStaff() + "?");
-        confirmAlert.setContentText("Username akan diatur sebagai NIP staff (jika ada) atau nama_staff, dan password awal adalah tanggal lahir (DDMMYYYY). Peran akan disesuaikan dengan jabatan staff. Lanjutkan?");
+        confirmAlert.setContentText("Username akan diatur sebagai NIP staff (jika ada), dan password awal adalah tanggal lahir (ddMMyyyy). Lanjutkan?");
 
         Optional<ButtonType> result = confirmAlert.showAndWait();
         if (result.isPresent() && result.get() == ButtonType.OK) {
-            String username = selectedStaffUser.getNip() != null && !selectedStaffUser.getNip().isEmpty() ?
-                    selectedStaffUser.getNip() : selectedStaffUser.getNamaStaff().replace(" ", "").toLowerCase(); // Fallback username
+            String username = (selectedStaffUser.getNip() != null && !selectedStaffUser.getNip().isEmpty()) ?
+                    selectedStaffUser.getNip() : selectedStaffUser.getNamaStaff().replace(" ", "").toLowerCase();
             String rawPassword = selectedStaffUser.getTanggalLahir().format(DateTimeFormatter.ofPattern("ddMMyyyy"));
             String hashedPassword = PasswordUtil.hashPassword(rawPassword);
 
-            // Sesuaikan role berdasarkan jabatan
             String role;
             switch (selectedStaffUser.getJabatan().toLowerCase()) {
-                case "administrator":
-                    role = "admin";
-                    break;
-                case "guru":
-                    role = "guru";
-                    break;
-                case "wali kelas":
-                    role = "wali_kelas"; // Role spesifik untuk wali kelas
-                    break;
+                case "administrator": role = "admin"; break;
+                case "guru": role = "guru"; break;
+                case "wali kelas": role = "wali_kelas"; break;
                 default:
-                    // Jika ada jabatan yang tidak termasuk di atas, berikan peringatan atau tetapkan default
                     showAlert(Alert.AlertType.ERROR, "Jabatan Tidak Valid", "Jabatan staff tidak memiliki role login yang ditentukan.");
-                    return; // Hentikan proses pembuatan user
+                    return;
             }
 
-            // Cek apakah user sudah ada
             if (isUserExists(username)) {
                 showAlert(Alert.AlertType.ERROR, "Gagal", "Akun login untuk username '" + username + "' sudah ada.");
                 return;
             }
 
             String insertUserSQL = "INSERT INTO users (username, password_hash, role, reference_id) VALUES (?, ?, ?, ?)";
-            Connection conn = null;
-            try {
-                conn = DatabaseConnection.getConnection();
-                try (PreparedStatement pstmt = conn.prepareStatement(insertUserSQL)) {
-                    pstmt.setString(1, username);
-                    pstmt.setString(2, hashedPassword);
-                    pstmt.setString(3, role);
-                    pstmt.setInt(4, selectedStaffUser.getStaffId());
-                    pstmt.executeUpdate();
-                    showAlert(Alert.AlertType.INFORMATION, "Sukses", "Akun login berhasil dibuat:\nUsername: " + username + "\nPassword Awal: " + rawPassword);
-                }
+            try (Connection conn = DatabaseConnection.getConnection();
+                 PreparedStatement pstmt = conn.prepareStatement(insertUserSQL)) {
+                pstmt.setString(1, username);
+                pstmt.setString(2, hashedPassword);
+                pstmt.setString(3, role);
+                pstmt.setInt(4, selectedStaffUser.getStaffId());
+                pstmt.executeUpdate();
+                showAlert(Alert.AlertType.INFORMATION, "Sukses", "Akun login berhasil dibuat:\nUsername: " + username + "\nPassword Awal: " + rawPassword);
             } catch (SQLException e) {
                 e.printStackTrace();
                 showAlert(Alert.AlertType.ERROR, "Database Error", "Gagal membuat akun login.");
-            } finally {
-                if (conn != null) {
-                    try {
-                        conn.close();
-                    } catch (SQLException e) {
-                        e.printStackTrace();
-                    }
-                }
             }
         }
     }
@@ -363,7 +301,6 @@ public class KelolaStaffController implements Initializable {
             }
         } catch (SQLException e) {
             e.printStackTrace();
-            showAlert(Alert.AlertType.ERROR, "Database Error", "Gagal memeriksa keberadaan username.");
         }
         return false;
     }
@@ -372,7 +309,7 @@ public class KelolaStaffController implements Initializable {
     @FXML
     private void handleBack() {
         try {
-            SceneManager.getInstance().loadScene("/org/example/sekolahApp/view/admin_dashboard.fxml", 800, 600);
+            SceneManager.getInstance().loadScene("/org/example/sekolahApp/view/admin_dashboard.fxml");
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -397,7 +334,6 @@ public class KelolaStaffController implements Initializable {
     }
 
     private boolean isFormValid() {
-        // Validasi dasar, sesuaikan dengan kebutuhan Anda
         return !namaStaffField.getText().isEmpty() &&
                 jabatanComboBox.getValue() != null &&
                 tanggalLahirPicker.getValue() != null;
