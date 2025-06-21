@@ -16,36 +16,24 @@
         <VBox alignment="CENTER" prefWidth="1024.0" spacing="15.0" BorderPane.alignment="CENTER">
             <children>
                 <Label text="Halaman Input Nilai">
-                    <font>
-                        <Font name="System Bold" size="36.0" />
-                    </font>
+                    <font><Font name="System Bold" size="36.0" /></font>
                 </Label>
                 <HBox alignment="CENTER" spacing="20.0">
                     <children>
-                        <Label text="Tahun Ajaran:">
-                            <font><Font size="14.0" /></font>
-                        </Label>
+                        <Label text="Tahun Ajaran:"><font><Font size="14.0" /></font></Label>
                         <ComboBox fx:id="tahunAjaranComboBox" prefWidth="200.0" promptText="-- Pilih Tahun --" />
-                        <Label text="Kelas:">
-                            <font><Font size="14.0" /></font>
-                        </Label>
+                        <Label text="Kelas:"><font><Font size="14.0" /></font></Label>
                         <ComboBox fx:id="kelasComboBox" prefWidth="200.0" promptText="-- Pilih Kelas --" />
                     </children>
                 </HBox>
                 <HBox alignment="CENTER" spacing="10.0">
                     <children>
-                        <Label text="Mata Pelajaran:">
-                            <font>
-                                <Font size="14.0" />
-                            </font>
-                        </Label>
+                        <Label text="Mata Pelajaran:"><font><Font size="14.0" /></font></Label>
                         <ComboBox fx:id="mapelComboBox" prefWidth="300.0" promptText="-- Pilih Mapel --" />
                     </children>
                 </HBox>
             </children>
-            <padding>
-                <Insets bottom="20.0" top="20.0" />
-            </padding>
+            <padding><Insets bottom="20.0" top="20.0" /></padding>
         </VBox>
     </top>
     <center>
@@ -53,22 +41,22 @@
             <columns>
                 <TableColumn fx:id="nisColumn" prefWidth="150.0" text="NIS" />
                 <TableColumn fx:id="namaColumn" prefWidth="250.0" text="Nama Siswa" />
-                <TableColumn fx:id="uts1Column" prefWidth="120.0" text="UTS 1" />
-                <TableColumn fx:id="uas1Column" prefWidth="120.0" text="UAS 1" />
-                <TableColumn fx:id="uts2Column" prefWidth="120.0" text="UTS 2" />
-                <TableColumn fx:id="uas2Column" prefWidth="120.0" text="UAS 2" />
+                <TableColumn fx:id="ujian1Column" prefWidth="70.0" text="Ujian 1" />
+                <TableColumn fx:id="ujian2Column" prefWidth="70.0" text="Ujian 2" />
+                <TableColumn fx:id="uts1Column" prefWidth="70.0" text="UTS 1" />
+                <TableColumn fx:id="uas1Column" prefWidth="70.0" text="UAS 1" />
+                <TableColumn fx:id="ujian3Column" prefWidth="70.0" text="Ujian 3" />
+                <TableColumn fx:id="ujian4Column" prefWidth="70.0" text="Ujian 4" />
+                <TableColumn fx:id="uts2Column" prefWidth="70.0" text="UTS 2" />
+                <TableColumn fx:id="uas2Column" prefWidth="70.0" text="UAS 2" />
             </columns>
-            <BorderPane.margin>
-                <Insets left="50.0" right="50.0" />
-            </BorderPane.margin>
+            <BorderPane.margin><Insets left="20.0" right="20.0" /></BorderPane.margin>
         </TableView>
     </center>
     <bottom>
         <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" spacing="20.0" BorderPane.alignment="CENTER">
-            <children>
-                <Button mnemonicParsing="false" onAction="#handleSimpan" prefHeight="40.0" prefWidth="150.0" text="Simpan Nilai" />
-                <Button mnemonicParsing="false" onAction="#handleBack" prefHeight="40.0" prefWidth="150.0" text="Kembali ke Dashboard" />
-            </children>
+            <Button onAction="#handleSimpan" prefHeight="40.0" prefWidth="150.0" text="Simpan &amp; Refresh" />
+            <Button onAction="#handleBack" prefHeight="40.0" prefWidth="150.0" text="Kembali ke Dashboard" />
         </HBox>
     </bottom>
 </BorderPane>
