@@ -20,6 +20,15 @@ public class Kelas {
         this.waliKelas = new SimpleObjectProperty<>(waliKelas);
     }
 
+    // Constructor simpel, hanya untuk ID dan Nama
+    public Kelas(int kelasId, String namaKelas) {
+        this.kelasId = new SimpleIntegerProperty(kelasId);
+        this.namaKelas = new SimpleStringProperty(namaKelas);
+        // Atribut lain bisa di-set ke null agar tidak error
+        this.tahunAjaran = new SimpleObjectProperty<>(null);
+        this.waliKelas = new SimpleObjectProperty<>(null);
+    }
+
     // Constructor simplified if loading from DB and only need IDs
     // Ini mungkin tidak terlalu dibutuhkan lagi karena kita memuat objek penuh
     // public Kelas(int kelasId, String namaKelas, int tahunAjaranId, String tahunAjaranStr, Integer waliKelasId, String waliKelasNama) {
@@ -45,6 +54,14 @@ public class Kelas {
 
     @Override
     public String toString() {
-        return getNamaKelas() + " (" + getTahunAjaran().getTahunAjaran() + ")"; // Penting untuk ComboBox
+        // PERBAIKAN: Cek apakah tahunAjaran tidak null sebelum digunakan
+        if (getTahunAjaran() != null && getTahunAjaran().getTahunAjaran() != null) {
+            // Jika lengkap, tampilkan nama dan tahun ajaran
+            return getNamaKelas() + " (" + getTahunAjaran().getTahunAjaran() + ")";
+        } else {
+            // Jika tidak lengkap (misal: dari halaman Kelola Kelulusan),
+            // cukup kembalikan nama kelasnya saja.
+            return getNamaKelas();
+        }
     }
 }

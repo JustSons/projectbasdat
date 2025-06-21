@@ -3,41 +3,46 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Separator?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<AnchorPane prefHeight="768.0" prefWidth="1024.0" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.sekolahApp.controller.AdminDashboardController">
+<AnchorPane prefHeight="768.0" prefWidth="1024.0" style="-fx-background-color: #f4f4f4;" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.sekolahApp.controller.AdminDashboardController">
     <children>
-        <VBox alignment="TOP_CENTER" layoutX="14.0" layoutY="14.0" prefHeight="740.0" prefWidth="200.0" spacing="10.0" style="-fx-background-color: #2c3e50; -fx-padding: 10; -fx-border-radius: 5;">
+        <VBox alignment="TOP_CENTER" layoutX="14.0" layoutY="14.0" prefHeight="740.0" prefWidth="240.0" spacing="10.0" style="-fx-background-color: #2c3e50; -fx-padding: 10; -fx-background-radius: 10;">
             <children>
-                <Label fx:id="menuTitleLabel" text="Menu Utama" textFill="WHITE">
+                <Label fx:id="menuTitleLabel" text="Menu Utama" textFill="white">
                     <font>
                         <Font name="System Bold" size="20.0" />
                     </font>
                     <VBox.margin>
-                        <Insets bottom="20.0" top="10.0" />
+                        <Insets bottom="10.0" />
                     </VBox.margin>
                 </Label>
-                <Button fx:id="kelolaMapelButton" onAction="#handleKelolaMapelButton" text="Kelola Mata Pelajaran" />
-                <Button fx:id="kelolaSiswaButton" mnemonicParsing="false" onAction="#handleKelolaSiswa" prefWidth="180.0" text="Kelola Siswa" />
-                <Button fx:id="kelolaStaffButton" mnemonicParsing="false" onAction="#handleKelolaStaff" prefWidth="180.0" text="Kelola Guru &amp; Staff" />
-                <Button fx:id="kelolaTahunAjaranButton" mnemonicParsing="false" onAction="#handleKelolaTahunAjaran" prefWidth="180.0" text="Kelola Tahun Ajaran" /> <Button fx:id="kelolaKelasButton" mnemonicParsing="false" onAction="#handleKelolaKelas" prefWidth="180.0" text="Kelola Kelas (Master)" /> <Button fx:id="pembagianKelasButton" mnemonicParsing="false" onAction="#handlePembagianKelas" prefWidth="180.0" text="Pembagian Kelas" />
-                <Button fx:id="kelolaJadwalButton" mnemonicParsing="false" onAction="#handleKelolaJadwal" prefWidth="180.0" text="Kelola Jadwal" />
-
-                <Button fx:id="masukkanNilaiButton" mnemonicParsing="false" onAction="#handleMasukkanNilai" prefWidth="180.0" text="Masukkan Nilai" />
-                <Button fx:id="cetakRaporButton" mnemonicParsing="false" onAction="#handleCetakRapor" prefWidth="180.0" text="Cetak Rapor" />
-
-                <Button mnemonicParsing="false" onAction="#handleLogout" prefWidth="180.0" text="Logout" style="-fx-background-color: #e74c3c; -fx-text-fill: white;">
-                    <VBox.margin>
-                        <Insets top="30.0" />
-                    </VBox.margin>
-                </Button>
+                <Label text="Manajemen Data Master" textFill="white" />
+                <Button fx:id="kelolaStaffButton" onAction="#handleKelolaStaff" prefHeight="40.0" prefWidth="220.0" text="Kelola Guru &amp; Staff" />
+                <Button fx:id="kelolaSiswaButton" onAction="#handleKelolaSiswa" prefHeight="40.0" prefWidth="220.0" text="Kelola Siswa" />
+                <Button fx:id="kelolaTahunAjaranButton" onAction="#handleKelolaTahunAjaran" prefHeight="40.0" prefWidth="220.0" text="Kelola Tahun Ajaran" />
+                <Button fx:id="kelolaMapelButton" onAction="#handleKelolaMapelButton" prefHeight="40.0" prefWidth="220.0" text="Kelola Mata Pelajaran" />
+                <Button fx:id="kelolaKelasButton" onAction="#handleKelolaKelas" prefHeight="40.0" prefWidth="220.0" text="Kelola Kelas (Template)" />
+                <Separator prefWidth="200.0" />
+                <Label text="Kegiatan Akademik" textFill="white" />
+                <Button fx:id="pembagianKelasButton" onAction="#handlePembagianKelas" prefHeight="40.0" prefWidth="220.0" text="Pembagian &amp; Wali Kelas" />
+                <Button fx:id="kelolaJadwalButton" onAction="#handleKelolaJadwal" prefHeight="40.0" prefWidth="220.0" text="Kelola Jadwal" />
+                <Button fx:id="masukkanNilaiButton" onAction="#handleMasukkanNilai" prefHeight="40.0" prefWidth="220.0" text="Input Nilai" />
+                <Button fx:id="cetakRaporButton" onAction="#handleCetakRapor" prefHeight="40.0" prefWidth="220.0" text="Cetak Rapor" />
+                <Separator prefWidth="200.0" />
+                <Label text="Proses Akhir Tahun" textFill="white" />
+                <Button fx:id="naikKelasButton" onAction="#handleNaikKelasButton" prefHeight="40.0" prefWidth="220.0" style="-fx-background-color: #3498db; -fx-text-fill: white;" text="Proses Kenaikan Kelas" />
+                <Button fx:id="kelolaKelulusanButton" onAction="#handleKelolaKelulusan" prefHeight="40.0" prefWidth="220.0" style="-fx-background-color: #27ae60; -fx-text-fill: white;" text="Kelola Kelulusan Siswa" />
+                <VBox VBox.vgrow="ALWAYS" />
+                <Button fx:id="logoutButton" onAction="#handleLogout" prefHeight="40.0" prefWidth="220.0" style="-fx-background-color: #e74c3c;" text="Logout" textFill="white" />
             </children>
         </VBox>
-        <VBox alignment="CENTER" layoutX="230.0" layoutY="14.0" prefHeight="740.0" prefWidth="780.0" spacing="10.0">
+        <VBox alignment="CENTER" layoutX="270.0" layoutY="14.0" prefHeight="740.0" prefWidth="740.0">
             <children>
-                <Label fx:id="welcomeLabel" text="Selamat Datang!">
+                <Label fx:id="welcomeLabel" text="Selamat Datang, Admin!">
                     <font>
                         <Font name="System Bold" size="24.0" />
                     </font>

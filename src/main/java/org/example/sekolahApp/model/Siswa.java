@@ -4,7 +4,6 @@ import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
-
 import java.time.LocalDate;
 
 public class Siswa {
@@ -17,8 +16,10 @@ public class Siswa {
     private LocalDate tanggalLahir;
     private final StringProperty namaOrangTua;
     private final StringProperty teleponOrangTua;
-    private final StringProperty kelasSaatIniNama; // <--- PASTIKAN BARIS INI ADA
+    private final StringProperty kelasSaatIniNama;
+    private final StringProperty status; // Pastikan field ini ada
 
+    // Constructor lengkap untuk saat membuat atau mengedit data siswa secara penuh
     public Siswa(int id, String nis, String nama, String alamat, String jenisKelamin, String agama, LocalDate tanggalLahir, String namaOrangTua, String teleponOrangTua) {
         this.id = new SimpleIntegerProperty(id);
         this.nis = new SimpleStringProperty(nis);
@@ -30,14 +31,15 @@ public class Siswa {
         this.namaOrangTua = new SimpleStringProperty(namaOrangTua);
         this.teleponOrangTua = new SimpleStringProperty(teleponOrangTua);
         this.kelasSaatIniNama = new SimpleStringProperty("");
+        this.status = new SimpleStringProperty("Aktif"); // Default status
     }
 
+    // Constructor simpel untuk menampilkan di tabel (seperti di Kelola Kelulusan)
     public Siswa(int id, String nis, String nama) {
         this.id = new SimpleIntegerProperty(id);
         this.nis = new SimpleStringProperty(nis);
         this.nama = new SimpleStringProperty(nama);
-
-        // Atribut lain bisa di-set ke null atau nilai default agar tidak error
+        // Atribut lain diisi nilai default agar tidak error
         this.alamat = new SimpleStringProperty(null);
         this.jenisKelamin = new SimpleStringProperty(null);
         this.agama = new SimpleStringProperty(null);
@@ -45,9 +47,11 @@ public class Siswa {
         this.namaOrangTua = new SimpleStringProperty(null);
         this.teleponOrangTua = new SimpleStringProperty(null);
         this.kelasSaatIniNama = new SimpleStringProperty("");
+        this.status = new SimpleStringProperty("Aktif");
     }
 
-    // Getters
+
+    // --- Getters ---
     public int getId() { return id.get(); }
     public String getNis() { return nis.get(); }
     public String getNama() { return nama.get(); }
@@ -57,11 +61,11 @@ public class Siswa {
     public LocalDate getTanggalLahir() { return tanggalLahir; }
     public String getNamaOrangTua() { return namaOrangTua.get(); }
     public String getTeleponOrangTua() { return teleponOrangTua.get(); }
-    @Override public String toString() { return getNama(); }
     public String getKelasSaatIniNama() { return kelasSaatIniNama.get(); }
+    public String getStatus() { return status.get(); }
 
 
-    // Setters
+    // --- Setters ---
     public void setNis(String value) { nis.set(value); }
     public void setNama(String value) { nama.set(value); }
     public void setAlamat(String value) { alamat.set(value); }
@@ -71,10 +75,15 @@ public class Siswa {
     public void setNamaOrangTua(String value) { namaOrangTua.set(value); }
     public void setTeleponOrangTua(String value) { teleponOrangTua.set(value); }
     public void setKelasSaatIniNama(String value) { kelasSaatIniNama.set(value); }
+    public void setStatus(String value) { status.set(value); }
 
-    // Property Getters (untuk TableView)
+
+    // --- Property Getters (Sangat Penting untuk TableView) ---
     public IntegerProperty idProperty() { return id; }
     public StringProperty nisProperty() { return nis; }
     public StringProperty namaProperty() { return nama; }
     public StringProperty kelasSaatIniNamaProperty() { return kelasSaatIniNama; }
+    public StringProperty statusProperty() { return status; } // <--- METHOD PENTING YANG HILANG
+
+    @Override public String toString() { return getNama(); }
 }
