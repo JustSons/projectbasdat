@@ -25,21 +25,21 @@
                         <Label text="Tahun Ajaran:">
                             <font><Font size="14.0" /></font>
                         </Label>
-                        <ComboBox fx:id="tahunAjaranComboBox" prefWidth="150.0" promptText="-- Pilih --" />
-                        <Label text="Semester:">
+                        <ComboBox fx:id="tahunAjaranComboBox" prefWidth="200.0" promptText="-- Pilih Tahun --" />
+                        <Label text="Kelas:">
                             <font><Font size="14.0" /></font>
                         </Label>
-                        <ComboBox fx:id="semesterComboBox" prefWidth="120.0" promptText="-- Pilih --" />
+                        <ComboBox fx:id="kelasComboBox" prefWidth="200.0" promptText="-- Pilih Kelas --" />
                     </children>
                 </HBox>
                 <HBox alignment="CENTER" spacing="10.0">
                     <children>
-                        <Label text="Pilih Mata Pelajaran:">
+                        <Label text="Mata Pelajaran:">
                             <font>
                                 <Font size="14.0" />
                             </font>
                         </Label>
-                        <ComboBox fx:id="mapelComboBox" prefWidth="250.0" promptText="-- Pilih Mapel --" />
+                        <ComboBox fx:id="mapelComboBox" prefWidth="300.0" promptText="-- Pilih Mapel --" />
                     </children>
                 </HBox>
             </children>
@@ -52,10 +52,11 @@
         <TableView fx:id="siswaTableView" prefHeight="200.0" prefWidth="200.0" BorderPane.alignment="CENTER">
             <columns>
                 <TableColumn fx:id="nisColumn" prefWidth="150.0" text="NIS" />
-                <TableColumn fx:id="namaColumn" prefWidth="300.0" text="Nama Siswa" />
-                <TableColumn fx:id="ujian1Column" prefWidth="120.0" text="Ujian 1" />
-                <TableColumn fx:id="ujian2Column" prefWidth="120.0" text="Ujian 2" />
-                <TableColumn fx:id="utsColumn" prefWidth="120.0" text="UTS" />
+                <TableColumn fx:id="namaColumn" prefWidth="250.0" text="Nama Siswa" />
+                <TableColumn fx:id="uts1Column" prefWidth="120.0" text="UTS 1" />
+                <TableColumn fx:id="uas1Column" prefWidth="120.0" text="UAS 1" />
+                <TableColumn fx:id="uts2Column" prefWidth="120.0" text="UTS 2" />
+                <TableColumn fx:id="uas2Column" prefWidth="120.0" text="UAS 2" />
             </columns>
             <BorderPane.margin>
                 <Insets left="50.0" right="50.0" />
