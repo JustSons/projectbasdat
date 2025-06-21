@@ -1,119 +1,149 @@
 package org.example.sekolahApp.controller;
 
+import javafx.beans.property.SimpleIntegerProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
-import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.util.StringConverter;
 import javafx.util.converter.IntegerStringConverter;
-import org.example.sekolahApp.model.Nilai;
-import org.example.sekolahApp.model.Siswa;
-import org.example.sekolahApp.model.TahunAjaran;
-import org.example.sekolahApp.util.SceneManager;
+import org.example.sekolahApp.model.*; // Impor semua model
+// import org.example.sekolahApp.dao.*; // Nanti Anda akan impor DAO di sini
 
-import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class InputNilaiController {
 
+    // --- FXML Controls Disesuaikan ---
     @FXML private ComboBox<TahunAjaran> tahunAjaranComboBox;
-    @FXML private ComboBox<Integer> semesterComboBox;
-    @FXML private ComboBox<String> mapelComboBox;
+    @FXML private ComboBox<Kelas> kelasComboBox;
+    @FXML private ComboBox<MataPelajaran> mapelComboBox;
 
-    @FXML private TableView<Siswa> siswaTableView;
-    @FXML private TableColumn<Siswa, String> nisColumn;
-    @FXML private TableColumn<Siswa, String> namaColumn;
-    @FXML private TableColumn<Siswa, Integer> ujian1Column;
-    @FXML private TableColumn<Siswa, Integer> ujian2Column;
-    @FXML private TableColumn<Siswa, Integer> utsColumn;
+    @FXML private TableView<SiswaKelas> siswaTableView; // Tipe data TableView diubah ke SiswaKelas
+    @FXML private TableColumn<SiswaKelas, String> nisColumn;
+    @FXML private TableColumn<SiswaKelas, String> namaColumn;
 
-    private final ObservableList<Siswa> masterSiswaList = FXCollections.observableArrayList();
-    private final List<String> mataPelajaranGuru = new ArrayList<>();
+    // Ganti nama kolom nilai di FXML Anda menjadi fx:id="uts1Column", "uas1Column", dst.
+    @FXML private TableColumn<SiswaKelas, Integer> uts1Column;
+    @FXML private TableColumn<SiswaKelas, Integer> uas1Column;
+    @FXML private TableColumn<SiswaKelas, Integer> uts2Column;
+    @FXML private TableColumn<SiswaKelas, Integer> uas2Column;
+
+    // --- Asumsi DAO sudah ada ---
+    // private final TahunAjaranDAO tahunAjaranDAO = new TahunAjaranDAO();
+    // private final KelasDAO kelasDAO = new KelasDAO();
+    // private final MapelDAO mapelDAO = new MapelDAO();
+    // private final SiswaKelasDAO siswaKelasDAO = new SiswaKelasDAO();
+    // private final NilaiDAO nilaiDAO = new NilaiDAO();
+
     private final ObservableList<TahunAjaran> tahunAjaranList = FXCollections.observableArrayList();
+    private final ObservableList<Kelas> kelasList = FXCollections.observableArrayList();
+    private final ObservableList<MataPelajaran> mapelList = FXCollections.observableArrayList();
+    private final ObservableList<SiswaKelas> siswaDiKelasList = FXCollections.observableArrayList();
 
     @FXML
     public void initialize() {
-        setupMockData();
         setupControls();
         setupTableView();
+        loadInitialData();
     }
 
-    private void setupMockData() {
-        tahunAjaranList.add(new TahunAjaran(1, "2024/2025", "Aktif"));
-        tahunAjaranList.add(new TahunAjaran(2, "2025/2026", "Tidak Aktif"));
-
-        Siswa siswa1 = new Siswa(1, "101", "Budi Santoso");
-        Siswa siswa2 = new Siswa(2, "102", "Citra Lestari");
-
-        siswa1.addOrUpdateNilai(new Nilai(1, "Matematika", "UTS", 80, "2024/2025", 1));
-        siswa1.addOrUpdateNilai(new Nilai(1, "Fisika", "UTS", 75, "2024/2025", 1));
-        siswa1.addOrUpdateNilai(new Nilai(1, "Matematika", "UTS", 88, "2025/2026", 1));
-
-        masterSiswaList.addAll(siswa1, siswa2);
-
-        mataPelajaranGuru.add("Matematika");
-        mataPelajaranGuru.add("Fisika");
+    private void loadInitialData() {
+        // GANTI DENGAN PANGGILAN DAO
+        // tahunAjaranList.setAll(tahunAjaranDAO.getAllAktif());
+        tahunAjaranList.setAll(new TahunAjaran(1, "2024/2025", "Aktif"));
+        tahunAjaranComboBox.setItems(tahunAjaranList);
     }
 
     private void setupControls() {
-        tahunAjaranComboBox.setItems(tahunAjaranList);
+        configureComboBox(tahunAjaranComboBox);
+        configureComboBox(kelasComboBox);
+        configureComboBox(mapelComboBox);
 
-        tahunAjaranComboBox.setConverter(new StringConverter<>() {
-            @Override
-            public String toString(TahunAjaran object) {
-                return object == null ? "" : object.getTahunAjaran();
-            }
-
-            @Override
-            public TahunAjaran fromString(String string) {
-                return null;
-            }
-        });
-
-        semesterComboBox.setItems(FXCollections.observableArrayList(1, 2));
-        mapelComboBox.setItems(FXCollections.observableArrayList(mataPelajaranGuru));
-
-        tahunAjaranComboBox.setOnAction(e -> loadSiswaData());
-        semesterComboBox.setOnAction(e -> loadSiswaData());
-        mapelComboBox.setOnAction(e -> loadSiswaData());
+        tahunAjaranComboBox.setOnAction(e -> loadKelasByTahunAjaran());
+        kelasComboBox.setOnAction(e -> loadMapelByKelas());
+        mapelComboBox.setOnAction(e -> loadSiswaDanNilai());
     }
 
-    private void loadSiswaData() {
-        if (tahunAjaranComboBox.getValue() != null && semesterComboBox.getValue() != null && mapelComboBox.getValue() != null) {
-            siswaTableView.setItems(masterSiswaList);
-            siswaTableView.refresh();
-        } else {
-            siswaTableView.getItems().clear();
+    private void loadKelasByTahunAjaran() {
+        TahunAjaran selected = tahunAjaranComboBox.getValue();
+        if (selected == null) return;
+        // PANGGILAN DAO:
+        // kelasList.setAll(kelasDAO.getByTahunAjaran(selected.getId()));
+        kelasList.setAll(new Kelas(101, "Kelas X-A", selected, null));
+        kelasComboBox.setItems(kelasList);
+    }
+
+    private void loadMapelByKelas() {
+        // Logika untuk memuat mapel yang diajar guru di kelas tersebut
+        // PANGGILAN DAO:
+        // mapelList.setAll(mapelDAO.getByGuruAndKelas(loggedInGuru.getId(), kelasComboBox.getValue().getId()));
+        mapelList.setAll(new MataPelajaran(201, "MAT", "Matematika"));
+        mapelComboBox.setItems(mapelList);
+    }
+
+    private void loadSiswaDanNilai() {
+        Kelas selectedKelas = kelasComboBox.getValue();
+        MataPelajaran selectedMapel = mapelComboBox.getValue();
+        if (selectedKelas == null || selectedMapel == null) return;
+
+        // 1. Ambil daftar siswa yang terdaftar di kelas ini
+        // PANGGILAN DAO:
+        // List<SiswaKelas> pendaftaranSiswa = siswaKelasDAO.getSiswaKelasByKelasId(selectedKelas.getKelasId());
+        // Mockup:
+        Siswa siswa1 = new Siswa(1, "101", "Budi");
+        Siswa siswa2 = new Siswa(2, "102", "Citra");
+        List<SiswaKelas> pendaftaranSiswa = List.of(
+                new SiswaKelas(501, siswa1, selectedKelas),
+                new SiswaKelas(502, siswa2, selectedKelas)
+        );
+
+        // 2. Ambil semua nilai yang sudah ada untuk semua siswa di kelas ini & mapel ini
+        List<Integer> siswaKelasIds = pendaftaranSiswa.stream().map(SiswaKelas::getSiswaKelasId).collect(Collectors.toList());
+        // PANGGILAN DAO:
+        // List<Nilai> nilaiList = nilaiDAO.getNilaiForSiswaKelas(siswaKelasIds, selectedMapel.getMapelId());
+
+        // Mockup Nilai:
+        List<Nilai> nilaiList = List.of(new Nilai(501, selectedMapel.getMapelId(), "UTS1", 85));
+
+        // 3. Distribusikan nilai ke setiap objek siswa
+        for (SiswaKelas sk : pendaftaranSiswa) {
+            List<Nilai> nilaiMilikSiswa = nilaiList.stream()
+                    .filter(n -> n.getSiswaKelasId() == sk.getSiswaKelasId())
+                    .collect(Collectors.toList());
+            sk.getSiswa().setDaftarNilai(nilaiMilikSiswa);
         }
+
+        // 4. Tampilkan di tabel
+        siswaDiKelasList.setAll(pendaftaranSiswa);
+        siswaTableView.setItems(siswaDiKelasList);
     }
+
 
     private void setupTableView() {
-        nisColumn.setCellValueFactory(new PropertyValueFactory<>("nis"));
-        namaColumn.setCellValueFactory(new PropertyValueFactory<>("nama"));
+        // Kolom NIS dan Nama sekarang mengambil data dari objek Siswa di dalam SiswaKelas
+        nisColumn.setCellValueFactory(cellData -> cellData.getValue().getSiswa().nisProperty());
+        namaColumn.setCellValueFactory(cellData -> cellData.getValue().getSiswa().namaProperty());
 
-        configureNilaiColumn(ujian1Column, "Ujian 1");
-        configureNilaiColumn(ujian2Column, "Ujian 2");
-        configureNilaiColumn(utsColumn, "UTS");
+        configureNilaiColumn(uts1Column, "UTS1");
+        configureNilaiColumn(uas1Column, "UAS1");
+        configureNilaiColumn(uts2Column, "UTS2");
+        configureNilaiColumn(uas2Column, "UAS2");
 
         siswaTableView.setEditable(true);
     }
 
-    private void configureNilaiColumn(TableColumn<Siswa, Integer> column, String jenisUjian) {
+    private void configureNilaiColumn(TableColumn<SiswaKelas, Integer> column, String jenisUjian) {
         column.setCellValueFactory(cellData -> {
-            TahunAjaran ta = tahunAjaranComboBox.getValue();
-            Integer semester = semesterComboBox.getValue();
+            Siswa siswa = cellData.getValue().getSiswa();
+            MataPelajaran mapel = mapelComboBox.getValue();
+            if (mapel == null) return null;
 
-            if (ta == null || semester == null) return null;
-
-            String tahunAjaranStr = ta.getTahunAjaran();
-            Siswa siswa = cellData.getValue();
-            Nilai nilai = siswa.getNilaiByKonteks(jenisUjian, tahunAjaranStr, semester);
-
+            Nilai nilai = siswa.getNilaiByMapelAndJenis(mapel.getMapelId(), jenisUjian);
             if (nilai != null) {
-                return new javafx.beans.property.SimpleIntegerProperty(nilai.getNilai()).asObject();
+                return new SimpleIntegerProperty(nilai.getNilai()).asObject();
             }
             return null;
         });
@@ -121,60 +151,40 @@ public class InputNilaiController {
         column.setCellFactory(TextFieldTableCell.forTableColumn(new IntegerStringConverter()));
 
         column.setOnEditCommit(event -> {
-            TahunAjaran ta = tahunAjaranComboBox.getValue();
-            Integer semester = semesterComboBox.getValue();
-            String mapel = mapelComboBox.getValue();
-
-            if (ta == null || semester == null || mapel == null) {
-                showAlert(Alert.AlertType.WARNING, "Konteks Tidak Lengkap", "Harap pilih Tahun Ajaran, Semester, dan Mata Pelajaran.");
-                siswaTableView.refresh();
-                return;
-            }
-
-            String tahunAjaranStr = ta.getTahunAjaran();
-            Siswa siswa = event.getRowValue();
+            SiswaKelas siswaKelas = event.getRowValue();
+            MataPelajaran mapel = mapelComboBox.getValue();
             Integer nilaiBaru = event.getNewValue();
 
-            if (nilaiBaru != null) {
-                Nilai n = new Nilai(siswa.getId(), mapel, jenisUjian, nilaiBaru, tahunAjaranStr, semester);
-                siswa.addOrUpdateNilai(n);
-                System.out.println("Nilai DENGAN KONTEKS diperbarui untuk " + siswa.getNama() + " -> " + jenisUjian + " (" + tahunAjaranStr + " Sem-" + semester + "): " + nilaiBaru);
+            if (mapel != null && nilaiBaru != null) {
+                Nilai n = new Nilai(siswaKelas.getSiswaKelasId(), mapel.getMapelId(), jenisUjian, nilaiBaru);
+                siswaKelas.getSiswa().addOrUpdateNilai(n);
+                System.out.println("Data di memori diperbarui!");
             }
         });
     }
 
     @FXML
     private void handleSimpan() {
-        System.out.println("\n--- SIMULASI SIMPAN KE DATABASE ---");
-        for(Siswa s : masterSiswaList) {
-            System.out.println("Histori Nilai untuk: " + s.getNama());
-            if(s.getDaftarNilai().isEmpty()) {
-                System.out.println("  (Tidak ada data nilai)");
-            } else {
-                for(Nilai n : s.getDaftarNilai()) {
-                    System.out.printf("  - TA: %s, Sem: %d, Mapel: %s, Ujian: %s, Nilai: %d\n",
-                            n.getTahunAjaran(), n.getSemester(), n.getNamaMapel(), n.getJenisUjian(), n.getNilai());
-                }
+        System.out.println("--- MENYIMPAN PERUBAHAN KE DATABASE ---");
+        for (SiswaKelas sk : siswaDiKelasList) {
+            for (Nilai n : sk.getSiswa().getDaftarNilai()) {
+                System.out.printf("Menyimpan: SiswaKelasID=%d, MapelID=%d, Jenis=%s, Nilai=%d\n",
+                        n.getSiswaKelasId(), n.getMapelId(), n.getJenisUjian(), n.getNilai());
+                // PANGGILAN DAO:
+                // nilaiDAO.saveOrUpdateNilai(n);
             }
         }
-        System.out.println("---------------------------------");
-        showAlert(Alert.AlertType.INFORMATION, "Sukses", "Data nilai berhasil disimpan (simulasi). Cek konsol untuk melihat semua histori nilai.");
+        showAlert(Alert.AlertType.INFORMATION, "Sukses", "Data nilai berhasil disimpan (simulasi).");
     }
 
-    @FXML
-    private void handleBack() {
-        try {
-            SceneManager.getInstance().loadScene("/org/example/sekolahApp/view/guru_dashboard.fxml");
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+    private <T> void configureComboBox(ComboBox<T> comboBox) {
+        // Menggunakan toString() dari setiap model untuk tampilan
+        comboBox.setConverter(new StringConverter<T>() {
+            @Override public String toString(T object) { return object == null ? null : object.toString(); }
+            @Override public T fromString(String string) { return null; }
+        });
     }
 
-    private void showAlert(Alert.AlertType alertType, String title, String message) {
-        Alert alert = new Alert(alertType);
-        alert.setTitle(title);
-        alert.setHeaderText(null);
-        alert.setContentText(message);
-        alert.showAndWait();
-    }
+    @FXML private void handleBack() { /* ... kode sama ... */ }
+    private void showAlert(Alert.AlertType type, String title, String message) { /* ... kode sama ... */ }
 }

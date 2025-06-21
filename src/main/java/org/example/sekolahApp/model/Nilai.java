@@ -1,27 +1,25 @@
 package org.example.sekolahApp.model;
 
 public class Nilai {
-    private final int idSiswa;
-    private final String namaMapel;
+    private Integer nilaiId;
+    private final int siswaKelasId;
+    private final int mapelId;
     private final String jenisUjian;
-    private final int nilai;
-    private final String tahunAjaran;
-    private final int semester;
+    private int nilai;
 
-    public Nilai(int idSiswa, String namaMapel, String jenisUjian, int nilai, String tahunAjaran, int semester) {
-        this.idSiswa = idSiswa;
-        this.namaMapel = namaMapel;
+    public Nilai(int siswaKelasId, int mapelId, String jenisUjian, int nilai) {
+        this.siswaKelasId = siswaKelasId;
+        this.mapelId = mapelId;
         this.jenisUjian = jenisUjian;
         this.nilai = nilai;
-        this.tahunAjaran = tahunAjaran;
-        this.semester = semester;
     }
 
-    // Getters
-    public int getIdSiswa() { return idSiswa; }
-    public String getNamaMapel() { return namaMapel; }
+    // Getters & Setters
+    public Integer getNilaiId() { return nilaiId; }
+    public void setNilaiId(Integer nilaiId) { this.nilaiId = nilaiId; }
+    public int getSiswaKelasId() { return siswaKelasId; }
+    public int getMapelId() { return mapelId; }
     public String getJenisUjian() { return jenisUjian; }
     public int getNilai() { return nilai; }
-    public String getTahunAjaran() { return tahunAjaran; }
-    public int getSemester() { return semester; }
+    public void setNilai(int nilai) { this.nilai = nilai; }
 }

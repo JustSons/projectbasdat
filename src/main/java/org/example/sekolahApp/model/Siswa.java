@@ -92,11 +92,14 @@ public class Siswa {
 
     @Override public String toString() { return getNama(); }
     public List<Nilai> getDaftarNilai() { return daftarNilai; }
-    public Nilai getNilaiByKonteks(String jenisUjian, String tahunAjaran, int semester) {
+    public void setDaftarNilai(List<Nilai> daftarNilai) {
+        this.daftarNilai.clear();
+        this.daftarNilai.addAll(daftarNilai);
+    }
+
+    public Nilai getNilaiByMapelAndJenis(int mapelId, String jenisUjian) {
         for (Nilai n : daftarNilai) {
-            if (n.getJenisUjian().equals(jenisUjian) &&
-                    n.getTahunAjaran().equals(tahunAjaran) &&
-                    n.getSemester() == semester) {
+            if (n.getMapelId() == mapelId && n.getJenisUjian().equals(jenisUjian)) {
                 return n;
             }
         }
@@ -104,15 +107,11 @@ public class Siswa {
     }
 
     public void addOrUpdateNilai(Nilai nilaiBaru) {
-        Nilai nilaiLama = getNilaiByKonteks(
-                nilaiBaru.getJenisUjian(),
-                nilaiBaru.getTahunAjaran(),
-                nilaiBaru.getSemester()
-        );
-
+        Nilai nilaiLama = getNilaiByMapelAndJenis(nilaiBaru.getMapelId(), nilaiBaru.getJenisUjian());
         if (nilaiLama != null) {
-            daftarNilai.remove(nilaiLama);
+            nilaiLama.setNilai(nilaiBaru.getNilai());
+        } else {
+            daftarNilai.add(nilaiBaru);
         }
-        daftarNilai.add(nilaiBaru);
     }
 }
