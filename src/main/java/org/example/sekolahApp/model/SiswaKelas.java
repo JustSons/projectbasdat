@@ -11,7 +11,15 @@ public class SiswaKelas {
         this.kelas = kelas;
     }
 
-    public int getSiswaKelasId() { return siswaKelasId; }
-    public Siswa getSiswa() { return siswa; }
-    public Kelas getKelas() { return kelas; }
+    public int getSiswaKelasId() {
+        return siswaKelasId;
+    }
+
+    public Siswa getSiswa() {
+        return siswa;
+    }
+
+    public Kelas getKelas() {
+        return kelas;
+    }
 }
