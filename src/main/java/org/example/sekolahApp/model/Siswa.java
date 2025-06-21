@@ -17,6 +17,7 @@ public class Siswa {
     private LocalDate tanggalLahir;
     private final StringProperty namaOrangTua;
     private final StringProperty teleponOrangTua;
+    private final StringProperty kelasSaatIniNama; // <--- PASTIKAN BARIS INI ADA
 
     public Siswa(int id, String nis, String nama, String alamat, String jenisKelamin, String agama, LocalDate tanggalLahir, String namaOrangTua, String teleponOrangTua) {
         this.id = new SimpleIntegerProperty(id);
@@ -28,6 +29,7 @@ public class Siswa {
         this.tanggalLahir = tanggalLahir;
         this.namaOrangTua = new SimpleStringProperty(namaOrangTua);
         this.teleponOrangTua = new SimpleStringProperty(teleponOrangTua);
+        this.kelasSaatIniNama = new SimpleStringProperty("");
     }
 
     // Getters
@@ -41,6 +43,7 @@ public class Siswa {
     public String getNamaOrangTua() { return namaOrangTua.get(); }
     public String getTeleponOrangTua() { return teleponOrangTua.get(); }
     @Override public String toString() { return getNama(); }
+    public String getKelasSaatIniNama() { return kelasSaatIniNama.get(); }
 
 
     // Setters
@@ -52,9 +55,11 @@ public class Siswa {
     public void setTanggalLahir(LocalDate value) { this.tanggalLahir = value; }
     public void setNamaOrangTua(String value) { namaOrangTua.set(value); }
     public void setTeleponOrangTua(String value) { teleponOrangTua.set(value); }
+    public void setKelasSaatIniNama(String value) { kelasSaatIniNama.set(value); }
 
     // Property Getters (untuk TableView)
     public IntegerProperty idProperty() { return id; }
     public StringProperty nisProperty() { return nis; }
     public StringProperty namaProperty() { return nama; }
+    public StringProperty kelasSaatIniNamaProperty() { return kelasSaatIniNama; }
 }

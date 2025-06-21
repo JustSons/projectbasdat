@@ -6,14 +6,26 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 
 public class TahunAjaran {
-    private final IntegerProperty id;
+    private final IntegerProperty tahunAjaranId;
     private final StringProperty tahunAjaran;
-    public TahunAjaran(int id, String tahun) {
-        this.id = new SimpleIntegerProperty(id);
-        this.tahunAjaran = new SimpleStringProperty(tahun);
+    private final StringProperty status;
+
+    public TahunAjaran(int tahunAjaranId, String tahunAjaran, String status) {
+        this.tahunAjaranId = new SimpleIntegerProperty(tahunAjaranId);
+        this.tahunAjaran = new SimpleStringProperty(tahunAjaran);
+        this.status = new SimpleStringProperty(status);
     }
-    // Getters
-    public int getId() { return id.get(); }
+
+    public int getTahunAjaranId() { return tahunAjaranId.get(); }
     public String getTahunAjaran() { return tahunAjaran.get(); }
-    @Override public String toString() { return getTahunAjaran(); }
+    public String getStatus() { return status.get(); }
+
+    public IntegerProperty tahunAjaranIdProperty() { return tahunAjaranId; }
+    public StringProperty tahunAjaranProperty() { return tahunAjaran; }
+    public StringProperty statusProperty() { return status; }
+
+    @Override
+    public String toString() {
+        return getTahunAjaran();
+    }
 }

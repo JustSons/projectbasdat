@@ -7,6 +7,7 @@ module org.example.sekolahApp {
     requires org.postgresql.jdbc;
 
     opens org.example.sekolahApp.model to javafx.base; // <--- INI SOLUSINYA!
+
     // ---------------------------
 
     opens org.example.sekolahApp to javafx.fxml;

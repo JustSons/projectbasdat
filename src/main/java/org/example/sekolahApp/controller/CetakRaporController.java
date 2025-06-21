@@ -4,7 +4,7 @@ import org.example.sekolahApp.util.SceneManager;
 import javafx.fxml.FXML;
 import java.io.IOException;
 
-public class InputNilaiController {
+public class CetakRaporController {
     @FXML
     private void handleBack() {
         try {

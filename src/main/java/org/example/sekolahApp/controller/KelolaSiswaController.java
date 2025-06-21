@@ -190,7 +190,7 @@ public class KelolaSiswaController implements Initializable {
                 String siswaHashedPassword = PasswordUtil.hashPassword(siswaRawPassword); // <--- TAMBAHKAN HASHING DI SINI!
 
                 pstmtUser.setString(1, siswaUsername);
-                pstmtUser.setString(2, siswaRawPassword); // Gunakan yang sudah di-hash
+                pstmtUser.setString(2, siswaHashedPassword); // Gunakan yang sudah di-hash
                 pstmtUser.setInt(3, newSiswaId);
                 pstmtUser.executeUpdate();
             }

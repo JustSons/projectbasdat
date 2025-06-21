@@ -3,40 +3,47 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
-<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="600.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.sekolahApp.controller.AdminDashboardController">
-    <left>
-        <VBox prefHeight="600.0" prefWidth="200.0" spacing="10.0" style="-fx-background-color: #34495e; -fx-padding: 10;">
+<AnchorPane prefHeight="768.0" prefWidth="1024.0" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.sekolahApp.controller.AdminDashboardController">
+    <children>
+        <VBox alignment="TOP_CENTER" layoutX="14.0" layoutY="14.0" prefHeight="740.0" prefWidth="200.0" spacing="10.0" style="-fx-background-color: #2c3e50; -fx-padding: 10; -fx-border-radius: 5;">
             <children>
-                <Label text="Menu Admin" textFill="WHITE">
+                <Label fx:id="menuTitleLabel" text="Menu Utama" textFill="WHITE">
                     <font>
-                        <Font name="System Bold" size="18.0" />
+                        <Font name="System Bold" size="20.0" />
                     </font>
-                </Label>
-                <Button mnemonicParsing="false" onAction="#handleKelolaSiswa" prefWidth="180.0" text="Kelola Siswa" />
-                <Button mnemonicParsing="false" onAction="#handleKelolaGuru" prefWidth="180.0" text="Kelola Guru &amp; Staff" />
-                <Button mnemonicParsing="false" onAction="#handleKelolaKelas" prefWidth="180.0" text="Kelola Kelas" />
-                <Button mnemonicParsing="false" onAction="#handleLogout" style="-fx-background-color: #e74c3c;" text="Logout" textFill="WHITE" prefWidth="180.0" VBox.vgrow="NEVER">
                     <VBox.margin>
-                        <Insets top="20.0" />
+                        <Insets bottom="20.0" top="10.0" />
+                    </VBox.margin>
+                </Label>
+
+                <Button fx:id="kelolaSiswaButton" mnemonicParsing="false" onAction="#handleKelolaSiswa" prefWidth="180.0" text="Kelola Siswa" />
+                <Button fx:id="kelolaStaffButton" mnemonicParsing="false" onAction="#handleKelolaStaff" prefWidth="180.0" text="Kelola Guru &amp; Staff" />
+                <Button fx:id="kelolaTahunAjaranButton" mnemonicParsing="false" onAction="#handleKelolaTahunAjaran" prefWidth="180.0" text="Kelola Tahun Ajaran" /> <Button fx:id="kelolaKelasButton" mnemonicParsing="false" onAction="#handleKelolaKelas" prefWidth="180.0" text="Kelola Kelas (Master)" /> <Button fx:id="pembagianKelasButton" mnemonicParsing="false" onAction="#handlePembagianKelas" prefWidth="180.0" text="Pembagian Kelas" />
+                <Button fx:id="kelolaJadwalButton" mnemonicParsing="false" onAction="#handleKelolaJadwal" prefWidth="180.0" text="Kelola Jadwal" />
+
+                <Button fx:id="masukkanNilaiButton" mnemonicParsing="false" onAction="#handleMasukkanNilai" prefWidth="180.0" text="Masukkan Nilai" />
+                <Button fx:id="cetakRaporButton" mnemonicParsing="false" onAction="#handleCetakRapor" prefWidth="180.0" text="Cetak Rapor" />
+
+                <Button mnemonicParsing="false" onAction="#handleLogout" prefWidth="180.0" text="Logout" style="-fx-background-color: #e74c3c; -fx-text-fill: white;">
+                    <VBox.margin>
+                        <Insets top="30.0" />
                     </VBox.margin>
                 </Button>
             </children>
         </VBox>
-    </left>
-    <center>
-        <VBox alignment="CENTER" prefHeight="200.0" prefWidth="100.0" spacing="20.0" BorderPane.alignment="CENTER">
+        <VBox alignment="CENTER" layoutX="230.0" layoutY="14.0" prefHeight="740.0" prefWidth="780.0" spacing="10.0">
             <children>
-                <Label text="Selamat Datang, Admin!">
+                <Label fx:id="welcomeLabel" text="Selamat Datang!">
                     <font>
-                        <Font name="System Bold" size="36.0" />
+                        <Font name="System Bold" size="24.0" />
                     </font>
                 </Label>
                 <Label text="Silakan pilih menu di sebelah kiri untuk memulai." />
             </children>
         </VBox>
-    </center>
-</BorderPane>
+    </children>
+</AnchorPane>
