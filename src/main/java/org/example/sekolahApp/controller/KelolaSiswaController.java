@@ -2,6 +2,7 @@ package org.example.sekolahApp.controller;
 
 import org.example.sekolahApp.db.DatabaseConnection;
 import org.example.sekolahApp.model.Siswa;
+import org.example.sekolahApp.util.PasswordUtil;
 import org.example.sekolahApp.util.SceneManager;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -147,11 +148,12 @@ public class KelolaSiswaController implements Initializable {
     }
 
     private void insertSiswa() {
-        String insertSiswaSQL = "INSERT INTO siswa (nis, nama_siswa, alamat, jenis_kelamin, agama, tanggal_lahir, nama_orang_tua, telepon_orang_tua) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+        String insertSiswaSQL = "INSERT INTO siswa (nis, nama_siswa, alamat, jenis_kelamin, agama, tanggal_lahir, nama_orang_tua, telepon_orang_tua) VALUES (?, ?, ?, ?, ?, ?, ?, ?); ALTER TABLE siswa ADD CONSTRAINT UQ_siswa_nis UNIQUE (nis);";
         String insertUserSQL = "INSERT INTO users (username, password_hash, role, reference_id) VALUES (?, ?, 'siswa', ?)";
 
-        Connection conn = DatabaseConnection.getConnection();
+        Connection conn = null;
         try {
+            conn = DatabaseConnection.getConnection();
             // Matikan auto-commit untuk transaksi
             conn.setAutoCommit(false);
 
@@ -173,8 +175,12 @@ public class KelolaSiswaController implements Initializable {
 
             // 2. Insert ke tabel users
             try (PreparedStatement pstmtUser = conn.prepareStatement(insertUserSQL)) {
-                pstmtUser.setString(1, nisField.getText()); // username = NIS
-                pstmtUser.setString(2, tanggalLahirPicker.getValue().format(DateTimeFormatter.ofPattern("ddMMyyyy"))); // password = DDMMYYYY
+                String siswaUsername = nisField.getText();
+                String siswaRawPassword = tanggalLahirPicker.getValue().format(DateTimeFormatter.ofPattern("ddMMyyyy"));
+                String siswaHashedPassword = PasswordUtil.hashPassword(siswaRawPassword); // <--- TAMBAHKAN HASHING DI SINI!
+
+                pstmtUser.setString(1, siswaUsername);
+                pstmtUser.setString(2, siswaHashedPassword); // Gunakan yang sudah di-hash
                 pstmtUser.setInt(3, newSiswaId);
                 pstmtUser.executeUpdate();
             }
@@ -242,8 +248,9 @@ public class KelolaSiswaController implements Initializable {
             String deleteUserSQL = "DELETE FROM users WHERE role = 'siswa' AND reference_id = ?";
             String deleteSiswaSQL = "DELETE FROM siswa WHERE siswa_id = ?";
 
-            Connection conn = DatabaseConnection.getConnection();
+            Connection conn = null;
             try {
+                conn = DatabaseConnection.getConnection();
                 conn.setAutoCommit(false);
 
                 // Hapus dari tabel users dulu

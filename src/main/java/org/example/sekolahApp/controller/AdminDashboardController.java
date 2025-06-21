@@ -41,7 +41,7 @@ public class AdminDashboardController {
     private void handleLogout() {
         try {
             UserSession.getInstance().cleanUserSession();
-            SceneManager.getInstance().loadScene("/com/yourcompany/sekolahapp/view/Login.fxml", 500, 400);
+            SceneManager.getInstance().loadScene("/org/example/sekolahApp/view/Login.fxml", 500, 400);
         } catch (IOException e) {
             e.printStackTrace();
         }
