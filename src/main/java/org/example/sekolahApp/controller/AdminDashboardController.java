@@ -53,19 +53,36 @@ public class AdminDashboardController implements Initializable {
         boolean isGuru = session.isGuru();
         boolean isWaliKelas = session.isWaliKelas();
 
-        // Atur visibilitas berdasarkan role
-        kelolaSiswaButton.setVisible(isAdmin);
-        kelolaStaffButton.setVisible(isAdmin);
-        pembagianKelasButton.setVisible(isAdmin);
-        kelolaJadwalButton.setVisible(isAdmin);
-        kelolaKelasButton.setVisible(isAdmin);
-        kelolaTahunAjaranButton.setVisible(isAdmin);
-        kelolaMapelButton.setVisible(isAdmin);
-        naikKelasButton.setVisible(isAdmin);
-        kelolaKelulusanButton.setVisible(isAdmin);
 
-        masukkanNilaiButton.setVisible(isGuru || isWaliKelas);
-        cetakRaporButton.setVisible(isWaliKelas);
+        kelolaSiswaButton.setVisible(false);
+        kelolaStaffButton.setVisible(false);
+        pembagianKelasButton.setVisible(false);
+        kelolaJadwalButton.setVisible(false);
+        kelolaKelasButton.setVisible(false);
+        kelolaTahunAjaranButton.setVisible(false); // Sembunyikan secara default
+        cetakRaporButton.setVisible(false);
+        masukkanNilaiButton.setVisible(false);
+        kelolaMapelButton.setVisible(false);
+        naikKelasButton.setVisible(false);
+        kelolaKelulusanButton.setVisible(false);
+
+        if (isAdmin) {
+            kelolaSiswaButton.setVisible(true);
+            kelolaStaffButton.setVisible(true);
+            pembagianKelasButton.setVisible(true);
+            kelolaJadwalButton.setVisible(true);
+            kelolaKelasButton.setVisible(true);
+            kelolaTahunAjaranButton.setVisible(true);
+            kelolaKelulusanButton.setVisible(true);
+            naikKelasButton.setVisible(true);
+            kelolaMapelButton.setVisible(true); // Admin bisa kelola tahun ajaran
+        } else if (isGuru) {
+            kelolaJadwalButton.setVisible(true);
+            masukkanNilaiButton.setVisible(true);
+        } else if (isWaliKelas) {
+            cetakRaporButton.setVisible(true);
+        }
+
     }
 
     // --- Event Handlers untuk Setiap Tombol ---

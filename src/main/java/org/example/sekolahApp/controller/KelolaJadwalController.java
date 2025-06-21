@@ -69,8 +69,20 @@ public class KelolaJadwalController implements Initializable {
                 (observable, oldValue, newValue) -> populateForm(newValue));
 
         UserSession session = UserSession.getInstance();
-        if (session.isGuru() || session.isSiswa()) {
+        if (session.isGuru() || session.isSiswa()) { // Guru atau Siswa hanya bisa melihat
             setFormReadOnly(true);
+            saveButton.setVisible(false);
+            clearButton.setVisible(false);
+            handleDeleteButton.setVisible(false);
+            // Nonaktifkan selection listener jika tidak ada edit
+            jadwalTableView.getSelectionModel().selectedItemProperty().removeListener(
+                    (observable, oldValue, newValue) -> populateForm(newValue));
+            jadwalTableView.getSelectionModel().setSelectionMode(SelectionMode.SINGLE); // Pastikan mode single selection
+        } else if (session.isWaliKelas()){ // Admin atau Wali Kelas (jika diizinkan mengedit jadwal)
+            setFormReadOnly(false);
+            saveButton.setVisible(false);
+            clearButton.setVisible(false);
+            handleDeleteButton.setVisible(false);
         }
     }
 
@@ -100,7 +112,13 @@ public class KelolaJadwalController implements Initializable {
         formGridPane.setDisable(readOnly);
         saveButton.setVisible(!readOnly);
         clearButton.setVisible(!readOnly);
-        handleDeleteButton.setVisible(!readOnly);
+        handleDeleteButton.setVisible(!readOnly);kelasComboBox.setDisable(readOnly);
+        hariComboBox.setDisable(readOnly);
+        jamMulaiField.setEditable(!readOnly);
+        jamSelesaiField.setEditable(!readOnly);
+        guruComboBox.setDisable(readOnly);
+        mataPelajaranComboBox.setDisable(readOnly);
+
     }
 
     private void loadKelasData() {
