@@ -76,23 +76,47 @@ public class InputNilaiController {
         mapelComboBox.setOnAction(e -> loadSiswaDanNilai());
     }
 
+    // GANTI metode lama Anda dengan versi yang sudah diperbaiki ini.
     private void loadKelasByTahunAjaran() {
-        TahunAjaran selected = tahunAjaranComboBox.getValue();
-        if (selected == null) return;
+        TahunAjaran selectedTahun = tahunAjaranComboBox.getValue();
+        if (selectedTahun == null) return;
 
+        // Kosongkan semua list turunan sebelum diisi ulang
         kelasList.clear();
-        String sql = "SELECT kelas_id, nama_kelas FROM kelas WHERE tahun_ajaran_id = ?";
+        mapelList.clear();
+        siswaDiKelasList.clear();
+
+        // Query ini diubah agar HANYA memuat kelas yang memiliki jadwal untuk guru yang login
+        // Ini menyelesaikan masalah kelas baru dan mapel baru yang tidak muncul
+        String sql = "SELECT DISTINCT k.kelas_id, k.nama_kelas FROM jadwal j " +
+                "JOIN kelas k ON j.kelas_id = k.kelas_id " +
+                "WHERE j.guru_id = ? AND k.tahun_ajaran_id = ?";
+
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setInt(1, selected.getTahunAjaranId());
+
+            pstmt.setInt(1, UserSession.getInstance().getReferenceId());
+            pstmt.setInt(2, selectedTahun.getTahunAjaranId());
             ResultSet rs = pstmt.executeQuery();
+
             while (rs.next()) {
                 kelasList.add(new Kelas(rs.getInt("kelas_id"), rs.getString("nama_kelas")));
             }
         } catch (SQLException e) {
             e.printStackTrace();
+            showAlert(Alert.AlertType.ERROR, "Database Error", "Gagal memuat data kelas yang Anda ajar.");
         }
+
+        // Set item ke ComboBox
         kelasComboBox.setItems(kelasList);
+
+        // Otomatis pilih item pertama jika ada, lalu picu pemuatan mapel
+        if (!kelasList.isEmpty()){
+            kelasComboBox.getSelectionModel().selectFirst();
+            // Memanggil loadMapelByKelas() secara manual setelah kelas dimuat
+            loadMapelByKelas();
+
+        }
     }
 
     private void loadMapelByKelas() {
@@ -101,7 +125,7 @@ public class InputNilaiController {
 
         mapelList.clear();
         // Muat mapel yang diajar oleh guru yang login di kelas yang dipilih
-        String sql = "SELECT DISTINCT mp.mapel_id, mp.kode_mapel, mp.nama_mapel FROM jadwal j " +
+        String sql = "SELECT mp.mapel_id, mp.kode_mapel, mp.nama_mapel FROM jadwal j " +
                 "JOIN mata_pelajaran mp ON j.mapel_id = mp.mapel_id " +
                 "WHERE j.guru_id = ? AND j.kelas_id = ?";
         try (Connection conn = DatabaseConnection.getConnection();
