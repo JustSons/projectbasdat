@@ -16,7 +16,7 @@ public class DatabaseConnection {
     // Database connection details
     private static final String URL = "jdbc:postgresql://localhost:5432/project_bd";
     private static final String USER = "postgres"; // User default pgAdmin
-    private static final String PASSWORD = "12345"; // Ganti dengan password Anda
+    private static final String PASSWORD = "1234"; // Ganti dengan password Anda
 
     /**
      * Get a new database connection instance.

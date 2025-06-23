@@ -18,13 +18,6 @@ public class Kelas {
         this.tahunAjaran = tahunAjaran;
         this.waliKelas = waliKelas;
     }
-
-    // --- KONSTRUKTOR BARU DITAMBAHKAN DI SINI ---
-    /**
-     * Konstruktor sederhana yang hanya menerima ID dan nama.
-     * Ini akan memperbaiki error di controller Anda.
-     * Ia memanggil konstruktor utama dengan nilai null untuk argumen yang tidak disediakan.
-     */
     public Kelas(int kelasId, String namaKelas) {
         this(kelasId, namaKelas, new TahunAjaran(0, "", ""), null); // Memberi objek default agar tidak null
     }
