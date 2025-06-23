@@ -92,19 +92,12 @@ public class LoginController {
     }
 
     private void navigateToDashboard(String role) throws IOException {
-        // Logika navigasi ini akan lebih baik jika ada satu dashboard controller untuk semua role
-        // yang kemudian memuat konten dinamis berdasarkan role, atau mengarahkan ke dashboard khusus.
-        // Untuk saat ini, kita bisa arahkan ke admin dashboard dan di sana menonaktifkan menu.
-        // Atau buat dashboard khusus guru/wali kelas jika UX-nya sangat berbeda.
-
-        // Jika ada dashboard khusus:
         if ("siswa".equalsIgnoreCase(role)) {
-            // SceneManager.getInstance().loadScene("/org/example.sekolahApp/view/SiswaDashboard.fxml", 800, 600);
-            showAlert(Alert.AlertType.INFORMATION, "Info", "Dashboard Siswa belum diimplementasikan.");
-        } else if ("guru".equalsIgnoreCase(role) || "wali_kelas".equalsIgnoreCase(role)) {
-            // SceneManager.getInstance().loadScene("/org/example.sekolahApp/view/GuruWaliKelasDashboard.fxml", 1024, 768);
-            // Untuk sementara, tetap arahkan ke admin dashboard dan sesuaikan menu di sana
-            SceneManager.getInstance().loadScene("/org/example/sekolahApp/view/admin_dashboard.fxml");
+            SceneManager.getInstance().loadScene("/org/example/sekolahApp/view/SiswaDashboard.fxml");
+        } else if ("guru".equalsIgnoreCase(role)) {
+            SceneManager.getInstance().loadScene("/org/example/sekolahApp/view/GuruDashboard.fxml");
+        } else if ("wali_kelas".equalsIgnoreCase(role)) {
+            SceneManager.getInstance().loadScene("/org/example/sekolahApp/view/WaliKelasDashboard.fxml");
         } else { // Admin
             SceneManager.getInstance().loadScene("/org/example/sekolahApp/view/admin_dashboard.fxml");
         }

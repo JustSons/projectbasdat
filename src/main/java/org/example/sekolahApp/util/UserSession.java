@@ -88,7 +88,7 @@ public class UserSession {
     }
 
     public boolean isWaliKelas() { // Getter baru
-        return "wali_kelas".equalsIgnoreCase(role) && waliKelasId != null; // Pastikan role dan ID kelasnya ada
+        return "wali_kelas".equalsIgnoreCase(role);// Pastikan role dan ID kelasnya ada
     }
 
     public boolean isSiswa() {

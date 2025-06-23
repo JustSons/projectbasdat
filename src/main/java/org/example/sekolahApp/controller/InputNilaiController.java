@@ -8,10 +8,17 @@ import javafx.scene.control.*;
 import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.util.StringConverter;
 import javafx.util.converter.IntegerStringConverter;
-import org.example.sekolahApp.model.*;
-import org.example.sekolahApp.*; // <-- HAPUS BARIS INI
-
+import org.example.sekolahApp.db.DatabaseConnection;
+import org.example.sekolahApp.model.*; // Pastikan semua model diimpor
+import org.example.sekolahApp.util.SceneManager;
+import org.example.sekolahApp.util.UserSession;
+import java.time.LocalDate;
+import java.io.IOException;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -20,25 +27,18 @@ public class InputNilaiController {
     @FXML private ComboBox<TahunAjaran> tahunAjaranComboBox;
     @FXML private ComboBox<Kelas> kelasComboBox;
     @FXML private ComboBox<MataPelajaran> mapelComboBox;
-    @FXML private TableView<RekapNilaiView> siswaTableView;
-    @FXML private TableColumn<RekapNilaiView, String> nisColumn;
-    @FXML private TableColumn<RekapNilaiView, String> namaColumn;
-    @FXML private TableColumn<RekapNilaiView, Integer> ujian1Column;
-    @FXML private TableColumn<RekapNilaiView, Integer> ujian2Column;
-    @FXML private TableColumn<RekapNilaiView, Integer> uts1Column;
-    @FXML private TableColumn<RekapNilaiView, Integer> uas1Column;
-    @FXML private TableColumn<RekapNilaiView, Integer> ujian3Column;
-    @FXML private TableColumn<RekapNilaiView, Integer> ujian4Column;
-    @FXML private TableColumn<RekapNilaiView, Integer> uts2Column;
-    @FXML private TableColumn<RekapNilaiView, Integer> uas2Column;
+    @FXML private TableView<SiswaKelas> siswaTableView;
+    @FXML private TableColumn<SiswaKelas, String> nisColumn;
+    @FXML private TableColumn<SiswaKelas, String> namaColumn;
+    @FXML private TableColumn<SiswaKelas, Integer> uts1Column;
+    @FXML private TableColumn<SiswaKelas, Integer> uas1Column;
+    @FXML private TableColumn<SiswaKelas, Integer> uts2Column;
+    @FXML private TableColumn<SiswaKelas, Integer> uas2Column;
 
-    private final TahunAjaranDAO tahunAjaranDAO = new TahunAjaranDAO();
-    private final KelasDAO kelasDAO = new KelasDAO();
-    private final MataPelajaranDAO mapelDAO = new MataPelajaranDAO();
-    private final SiswaKelasDAO siswaKelasDAO = new SiswaKelasDAO();
-    private final NilaiDAO nilaiDAO = new NilaiDAO();
-
-    private final ObservableList<RekapNilaiView> rekapNilaiViewList = FXCollections.observableArrayList();
+    private final ObservableList<TahunAjaran> tahunAjaranList = FXCollections.observableArrayList();
+    private final ObservableList<Kelas> kelasList = FXCollections.observableArrayList();
+    private final ObservableList<MataPelajaran> mapelList = FXCollections.observableArrayList();
+    private final ObservableList<SiswaKelas> siswaDiKelasList = FXCollections.observableArrayList();
 
     @FXML
     public void initialize() {
@@ -48,119 +48,297 @@ public class InputNilaiController {
     }
 
     private void loadInitialData() {
-        try {
-            tahunAjaranComboBox.setItems(FXCollections.observableArrayList(tahunAjaranDAO.getAllAktif()));
-        } catch (SQLException e) { handleDbError(e); }
+        // DAO akan mengambil alih ini di implementasi nyata
+        String sql = "SELECT tahun_ajaran_id, tahun_ajaran, status FROM tahun_ajaran WHERE status = 'aktif'";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql);
+             ResultSet rs = pstmt.executeQuery()) {
+            if (rs.next()) {
+                tahunAjaranList.add(new TahunAjaran(rs.getInt("tahun_ajaran_id"), rs.getString("tahun_ajaran"), rs.getString("status")));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        tahunAjaranComboBox.setItems(tahunAjaranList);
+        if (!tahunAjaranList.isEmpty()) {
+            tahunAjaranComboBox.getSelectionModel().selectFirst();
+            loadKelasByTahunAjaran(); // Langsung muat kelas untuk tahun ajaran aktif
+        }
     }
 
     private void setupControls() {
         configureComboBox(tahunAjaranComboBox);
         configureComboBox(kelasComboBox);
         configureComboBox(mapelComboBox);
-        tahunAjaranComboBox.setOnAction(e -> loadKelasByTahunAjaran());
-        kelasComboBox.setOnAction(e -> loadMapel());
+
+        // Aksi ketika pilihan berubah
+        kelasComboBox.setOnAction(e -> loadMapelByKelas());
         mapelComboBox.setOnAction(e -> loadSiswaDanNilai());
     }
 
+    // GANTI metode lama Anda dengan versi yang sudah diperbaiki ini.
     private void loadKelasByTahunAjaran() {
-        TahunAjaran selected = tahunAjaranComboBox.getValue();
-        if (selected == null) return;
-        try {
-            kelasComboBox.setItems(FXCollections.observableArrayList(kelasDAO.getByTahunAjaranId(selected.getTahunAjaranId())));
-        } catch (SQLException e) { handleDbError(e); }
+        TahunAjaran selectedTahun = tahunAjaranComboBox.getValue();
+        if (selectedTahun == null) return;
+
+        // Kosongkan semua list turunan sebelum diisi ulang
+        kelasList.clear();
+        mapelList.clear();
+        siswaDiKelasList.clear();
+
+        // Query ini diubah agar HANYA memuat kelas yang memiliki jadwal untuk guru yang login
+        // Ini menyelesaikan masalah kelas baru dan mapel baru yang tidak muncul
+        String sql = "SELECT DISTINCT k.kelas_id, k.nama_kelas FROM jadwal j " +
+                "JOIN kelas k ON j.kelas_id = k.kelas_id " +
+                "WHERE j.guru_id = ? AND k.tahun_ajaran_id = ?";
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setInt(1, UserSession.getInstance().getReferenceId());
+            pstmt.setInt(2, selectedTahun.getTahunAjaranId());
+            ResultSet rs = pstmt.executeQuery();
+
+            while (rs.next()) {
+                kelasList.add(new Kelas(rs.getInt("kelas_id"), rs.getString("nama_kelas")));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            showAlert(Alert.AlertType.ERROR, "Database Error", "Gagal memuat data kelas yang Anda ajar.");
+        }
+
+        // Set item ke ComboBox
+        kelasComboBox.setItems(kelasList);
+
+        // Otomatis pilih item pertama jika ada, lalu picu pemuatan mapel
+        if (!kelasList.isEmpty()){
+            kelasComboBox.getSelectionModel().selectFirst();
+            // Memanggil loadMapelByKelas() secara manual setelah kelas dimuat
+            loadMapelByKelas();
+
+        }
     }
 
-    private void loadMapel() {
-        try {
-            mapelComboBox.setItems(FXCollections.observableArrayList(mapelDAO.getAll()));
-        } catch (SQLException e) { handleDbError(e); }
+    private void loadMapelByKelas() {
+        Kelas selectedKelas = kelasComboBox.getValue();
+        if (selectedKelas == null) return;
+
+        mapelList.clear();
+        // Muat mapel yang diajar oleh guru yang login di kelas yang dipilih
+        String sql = "SELECT mp.mapel_id, mp.kode_mapel, mp.nama_mapel FROM jadwal j " +
+                "JOIN mata_pelajaran mp ON j.mapel_id = mp.mapel_id " +
+                "WHERE j.guru_id = ? AND j.kelas_id = ?";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, UserSession.getInstance().getReferenceId());
+            pstmt.setInt(2, selectedKelas.getKelasId());
+            ResultSet rs = pstmt.executeQuery();
+            while (rs.next()) {
+                mapelList.add(new MataPelajaran(rs.getInt("mapel_id"), rs.getString("kode_mapel"), rs.getString("nama_mapel")));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        mapelComboBox.setItems(mapelList);
     }
 
     private void loadSiswaDanNilai() {
         Kelas selectedKelas = kelasComboBox.getValue();
         MataPelajaran selectedMapel = mapelComboBox.getValue();
-        if (selectedKelas == null || selectedMapel == null) return;
-
-        try {
-            List<SiswaKelas> pendaftaranSiswa = siswaKelasDAO.getSiswaInKelas(selectedKelas.getKelasId());
-            rekapNilaiViewList.clear();
-
-            if (pendaftaranSiswa.isEmpty()) {
-                siswaTableView.setItems(rekapNilaiViewList);
-                return;
-            }
-
-            List<Integer> siswaKelasIds = pendaftaranSiswa.stream().map(SiswaKelas::getSiswaKelasId).collect(Collectors.toList());
-            List<Nilai> semuaNilai = nilaiDAO.getNilaiForSiswaKelas(siswaKelasIds, selectedMapel.getMapelId());
-
-            for (SiswaKelas sk : pendaftaranSiswa) {
-                RekapNilaiView rekapView = new RekapNilaiView(sk);
-                semuaNilai.stream()
-                        .filter(n -> n.getSiswaKelasId() == sk.getSiswaKelasId())
-                        .forEach(n -> rekapView.setNilaiByJenis(n.getJenisUjian(), n.getNilai()));
-                rekapNilaiViewList.add(rekapView);
-            }
-
-            siswaTableView.setItems(rekapNilaiViewList);
-        } catch (SQLException e) {
-            handleDbError(e);
+        if (selectedKelas == null || selectedMapel == null) {
+            siswaDiKelasList.clear(); // Kosongkan tabel jika tidak ada mapel/kelas
+            return;
         }
+
+        // 1. Ambil daftar siswa dari tabel siswa_kelas
+        List<SiswaKelas> pendaftaranSiswa = new ArrayList<>();
+        String sqlSiswa = "SELECT sk.siswa_kelas_id, s.* " +
+                "FROM siswa_kelas sk " +
+                "JOIN siswa s ON sk.siswa_id = s.siswa_id WHERE sk.kelas_id = ?";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sqlSiswa)) {
+            pstmt.setInt(1, selectedKelas.getKelasId());
+            ResultSet rs = pstmt.executeQuery();
+            while (rs.next()) {
+                Siswa siswa = new Siswa(rs.getInt("siswa_id"),
+                        rs.getString("nis"),
+                        rs.getString("nama_siswa"),
+                        rs.getString("alamat"),
+                        rs.getString("jenis_kelamin"),
+                        rs.getString("agama"),
+                        rs.getDate("tanggal_lahir").toLocalDate(),
+                        rs.getString("nama_orang_tua"),
+                        rs.getString("telepon_orang_tua")
+                );
+                pendaftaranSiswa.add(new SiswaKelas(rs.getInt("siswa_kelas_id"), siswa, selectedKelas));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return;
+        }
+
+        if (pendaftaranSiswa.isEmpty()) {
+            siswaDiKelasList.clear();
+            return;
+        }
+
+        // 2. Ambil semua nilai untuk semua siswa di kelas ini & mapel ini dalam satu query
+        List<Integer> siswaKelasIds = pendaftaranSiswa.stream().map(SiswaKelas::getSiswaKelasId).collect(Collectors.toList());
+        String placeholders = siswaKelasIds.stream().map(id -> "?").collect(Collectors.joining(","));
+        String sqlNilai = "SELECT siswa_kelas_id, jenis_ujian, nilai FROM nilai WHERE mapel_id = ? AND siswa_kelas_id IN (" + placeholders + ")";
+
+        List<Nilai> semuaNilai = new ArrayList<>();
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sqlNilai)) {
+            pstmt.setInt(1, selectedMapel.getMapelId());
+            for (int i = 0; i < siswaKelasIds.size(); i++) {
+                pstmt.setInt(i + 2, siswaKelasIds.get(i));
+            }
+            ResultSet rs = pstmt.executeQuery();
+            while (rs.next()) {
+                semuaNilai.add(new Nilai(rs.getInt("siswa_kelas_id"), selectedMapel.getMapelId(), rs.getString("jenis_ujian"), rs.getInt("nilai")));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        // 3. Distribusikan nilai ke setiap objek siswa
+        for (SiswaKelas sk : pendaftaranSiswa) {
+            List<Nilai> nilaiMilikSiswa = semuaNilai.stream()
+                    .filter(n -> n.getSiswaKelasId() == sk.getSiswaKelasId())
+                    .collect(Collectors.toList());
+            sk.getSiswa().setDaftarNilai(nilaiMilikSiswa);
+        }
+
+        // 4. Tampilkan di tabel
+        siswaDiKelasList.setAll(pendaftaranSiswa);
     }
 
     private void setupTableView() {
-        nisColumn.setCellValueFactory(cellData -> cellData.getValue().getSiswa().nisProperty());
-        namaColumn.setCellValueFactory(cellData -> cellData.getValue().getSiswa().namaProperty());
-
-        configureNilaiColumn(ujian1Column, "Ujian 1", "ujian1");
-        configureNilaiColumn(ujian2Column, "Ujian 2", "ujian2");
-        configureNilaiColumn(uts1Column, "UTS1", "uts1");
-        configureNilaiColumn(uas1Column, "UAS1", "uas1");
-        configureNilaiColumn(ujian3Column, "Ujian 3", "ujian3");
-        configureNilaiColumn(ujian4Column, "Ujian 4", "ujian4");
-        configureNilaiColumn(uts2Column, "UTS2", "uts2");
-        configureNilaiColumn(uas2Column, "UAS2", "uas2");
-
+        siswaTableView.setItems(siswaDiKelasList);
         siswaTableView.setEditable(true);
+
+        // --- NAMA PROPERTI DIPERBAIKI ---
+        nisColumn.setCellValueFactory(cellData -> cellData.getValue().getSiswa().nisProperty());
+        namaColumn.setCellValueFactory(cellData -> cellData.getValue().getSiswa().namaProperty()); // Diubah dari namaProperty()
+
+        // Konfigurasi kolom nilai tidak berubah
+        configureNilaiColumn(uts1Column, "UTS1");
+        configureNilaiColumn(uas1Column, "UAS1");
+        configureNilaiColumn(uts2Column, "UTS2");
+        configureNilaiColumn(uas2Column, "UAS2");
     }
 
-    private void configureNilaiColumn(TableColumn<RekapNilaiView, Integer> column, String jenisUjian, String propertyName) {
-        column.setCellValueFactory(new javafx.scene.control.cell.PropertyValueFactory<>(propertyName));
+    private void configureNilaiColumn(TableColumn<SiswaKelas, Integer> column, String jenisUjian) {
+        // Mengambil nilai dari dalam objek Siswa
+        column.setCellValueFactory(cellData -> {
+            Siswa siswa = cellData.getValue().getSiswa();
+            MataPelajaran mapel = mapelComboBox.getValue();
+            if (mapel == null) return null;
+
+            Nilai nilai = siswa.getNilaiByMapelAndJenis(mapel.getMapelId(), jenisUjian);
+            if (nilai != null) {
+                return new SimpleIntegerProperty(nilai.getNilai()).asObject();
+            }
+            return null; // Tampilkan kosong jika belum ada nilai
+        });
+
+        // Membuat cell menjadi TextField saat diedit
         column.setCellFactory(TextFieldTableCell.forTableColumn(new IntegerStringConverter()));
 
+        // Aksi saat selesai mengedit
         column.setOnEditCommit(event -> {
-            RekapNilaiView rekapView = event.getRowValue();
+            SiswaKelas siswaKelas = event.getRowValue();
             MataPelajaran mapel = mapelComboBox.getValue();
             Integer nilaiBaru = event.getNewValue();
 
-            if (mapel != null) {
-                Nilai nilaiToSave = new Nilai(rekapView.getSiswaKelas().getSiswaKelasId(), mapel.getMapelId(), jenisUjian, nilaiBaru);
-                try {
-                    nilaiDAO.saveOrUpdateNilai(nilaiToSave);
-                    rekapView.setNilaiByJenis(jenisUjian, nilaiBaru);
-                } catch (SQLException e) {
-                    handleDbError(e);
-                    event.getTableView().refresh();
-                }
+            if (mapel != null && nilaiBaru != null) {
+                // Buat objek nilai baru dan perbarui data di memori (di dalam objek Siswa)
+                Nilai n = new Nilai(siswaKelas.getSiswaKelasId(), mapel.getMapelId(), jenisUjian, nilaiBaru);
+                siswaKelas.getSiswa().addOrUpdateNilai(n);
+                System.out.printf("Memori diperbarui: Siswa %s, Jenis %s, Nilai %d\n", siswaKelas.getSiswa().getNama(), jenisUjian, nilaiBaru);
             }
         });
     }
 
     @FXML
     private void handleSimpan() {
-        showAlert(Alert.AlertType.INFORMATION, "Refresh Data", "Menyegarkan data dari database.");
-        loadSiswaDanNilai();
+        MataPelajaran selectedMapel = mapelComboBox.getValue();
+        if (selectedMapel == null) {
+            showAlert(Alert.AlertType.WARNING, "Gagal", "Pilih mata pelajaran terlebih dahulu.");
+            return;
+        }
+
+        String checkSql = "SELECT nilai_id FROM nilai WHERE siswa_kelas_id = ? AND mapel_id = ? AND jenis_ujian = ?";
+        String insertSql = "INSERT INTO nilai (siswa_kelas_id, mapel_id, jenis_ujian, nilai) VALUES (?, ?, ?, ?)";
+        String updateSql = "UPDATE nilai SET nilai = ? WHERE nilai_id = ?";
+
+        try (Connection conn = DatabaseConnection.getConnection()) {
+            conn.setAutoCommit(false); // Mulai transaksi
+
+            try (PreparedStatement checkStmt = conn.prepareStatement(checkSql);
+                 PreparedStatement insertStmt = conn.prepareStatement(insertSql);
+                 PreparedStatement updateStmt = conn.prepareStatement(updateSql)) {
+
+                for (SiswaKelas sk : siswaDiKelasList) {
+                    for (Nilai n : sk.getSiswa().getDaftarNilai()) {
+                        // Cek apakah nilai sudah ada di DB
+                        checkStmt.setInt(1, n.getSiswaKelasId());
+                        checkStmt.setInt(2, n.getMapelId());
+                        checkStmt.setString(3, n.getJenisUjian());
+                        ResultSet rs = checkStmt.executeQuery();
+
+                        if (rs.next()) { // Jika ada, UPDATE
+                            int nilaiId = rs.getInt("nilai_id");
+                            updateStmt.setInt(1, n.getNilai());
+                            updateStmt.setInt(2, nilaiId);
+                            updateStmt.addBatch();
+                        } else { // Jika tidak ada, INSERT
+                            insertStmt.setInt(1, n.getSiswaKelasId());
+                            insertStmt.setInt(2, n.getMapelId());
+                            insertStmt.setString(3, n.getJenisUjian());
+                            insertStmt.setInt(4, n.getNilai());
+                            insertStmt.addBatch();
+                        }
+                    }
+                }
+                insertStmt.executeBatch();
+                updateStmt.executeBatch();
+                conn.commit(); // Selesaikan transaksi
+                showAlert(Alert.AlertType.INFORMATION, "Sukses", "Semua perubahan nilai telah disimpan ke database.");
+
+            } catch (SQLException e) {
+                conn.rollback(); // Batalkan transaksi jika ada error
+                throw e;
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            showAlert(Alert.AlertType.ERROR, "Database Error", "Terjadi kesalahan saat menyimpan nilai.");
+        }
     }
 
+    // Helper untuk konfigurasi ComboBox
     private <T> void configureComboBox(ComboBox<T> comboBox) {
-        comboBox.setConverter(new StringConverter<>() {
-            @Override public String toString(T object) { return object == null ? null : object.toString(); }
-            @Override public T fromString(String string) { return null; }
+        comboBox.setConverter(new StringConverter<T>() {
+            @Override
+            public String toString(T object) {
+                return object == null ? null : object.toString();
+            }
+            @Override
+            public T fromString(String string) {
+                return null;
+            }
         });
     }
 
-    private void handleDbError(SQLException e) {
-        e.printStackTrace();
-        showAlert(Alert.AlertType.ERROR, "Error Database", "Terjadi kesalahan pada database: " + e.getMessage());
+    @FXML
+    private void handleBack() {
+        try {
+            SceneManager.getInstance().loadScene("/org/example/sekolahApp/view/admin_dashboard.fxml");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     private void showAlert(Alert.AlertType type, String title, String message) {
@@ -170,6 +348,4 @@ public class InputNilaiController {
         alert.setContentText(message);
         alert.showAndWait();
     }
-
-    @FXML private void handleBack() { /* Implementasi navigasi Anda */ }
 }
