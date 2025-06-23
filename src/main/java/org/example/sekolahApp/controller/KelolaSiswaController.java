@@ -188,7 +188,7 @@ public class KelolaSiswaController implements Initializable {
                 String siswaRawPassword = tanggalLahirPicker.getValue().format(DateTimeFormatter.ofPattern("ddMMyyyy"));
                 String siswaHashedPassword = PasswordUtil.hashPassword(siswaRawPassword); // <--- TAMBAHKAN HASHING DI SINI!
 
-                pstmtUser.setString(1, siswaUsername);
+                pstmtUser.setString(1, "s"+ siswaUsername);
                 pstmtUser.setString(2, siswaHashedPassword); // Gunakan yang sudah di-hash
                 pstmtUser.setInt(3, newSiswaId);
                 pstmtUser.executeUpdate();

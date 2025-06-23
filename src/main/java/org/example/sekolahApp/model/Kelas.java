@@ -1,67 +1,63 @@
 package org.example.sekolahApp.model;
 
 import javafx.beans.property.IntegerProperty;
-import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleIntegerProperty;
-import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 
 public class Kelas {
-    private final IntegerProperty kelasId;
+    private final int kelasId;
     private final StringProperty namaKelas;
-    private final ObjectProperty<TahunAjaran> tahunAjaran; // Reference to TahunAjaran object
-    private final ObjectProperty<Staff> waliKelas; // Reference to Staff object for wali kelas
+    private final TahunAjaran tahunAjaran;
+    private final Staff waliKelas;
 
+    // Ini adalah konstruktor utama Anda yang sudah ada
     public Kelas(int kelasId, String namaKelas, TahunAjaran tahunAjaran, Staff waliKelas) {
-        this.kelasId = new SimpleIntegerProperty(kelasId);
+        this.kelasId = kelasId;
         this.namaKelas = new SimpleStringProperty(namaKelas);
-        this.tahunAjaran = new SimpleObjectProperty<>(tahunAjaran);
-        this.waliKelas = new SimpleObjectProperty<>(waliKelas);
+        this.tahunAjaran = tahunAjaran;
+        this.waliKelas = waliKelas;
     }
 
-    // Constructor simpel, hanya untuk ID dan Nama
+    // --- KONSTRUKTOR BARU DITAMBAHKAN DI SINI ---
+    /**
+     * Konstruktor sederhana yang hanya menerima ID dan nama.
+     * Ini akan memperbaiki error di controller Anda.
+     * Ia memanggil konstruktor utama dengan nilai null untuk argumen yang tidak disediakan.
+     */
     public Kelas(int kelasId, String namaKelas) {
-        this.kelasId = new SimpleIntegerProperty(kelasId);
-        this.namaKelas = new SimpleStringProperty(namaKelas);
-        // Atribut lain bisa di-set ke null agar tidak error
-        this.tahunAjaran = new SimpleObjectProperty<>(null);
-        this.waliKelas = new SimpleObjectProperty<>(null);
+        this(kelasId, namaKelas, new TahunAjaran(0, "", ""), null); // Memberi objek default agar tidak null
     }
 
-    // Constructor simplified if loading from DB and only need IDs
-    // Ini mungkin tidak terlalu dibutuhkan lagi karena kita memuat objek penuh
-    // public Kelas(int kelasId, String namaKelas, int tahunAjaranId, String tahunAjaranStr, Integer waliKelasId, String waliKelasNama) {
-    //     this(kelasId, namaKelas,
-    //          new TahunAjaran(tahunAjaranId, tahunAjaranStr, null),
-    //          (waliKelasId != null && waliKelasNama != null) ? new Staff(waliKelasId, waliKelasNama) : null
-    //     );
-    // }
 
+    // --- Sisa kode di file ini biarkan seperti semula ---
 
-    // Getters
-    public int getKelasId() { return kelasId.get(); }
-    public String getNamaKelas() { return namaKelas.get(); }
-    public TahunAjaran getTahunAjaran() { return tahunAjaran.get(); }
-    public Staff getWaliKelas() { return waliKelas.get(); }
+    public int getKelasId() {
+        return kelasId;
+    }
 
-    // Property Getters
-    public IntegerProperty kelasIdProperty() { return kelasId; }
-    public StringProperty namaKelasProperty() { return namaKelas; }
-    public ObjectProperty<TahunAjaran> tahunAjaranProperty() { return tahunAjaran; }
-    public ObjectProperty<Staff> waliKelasProperty() { return waliKelas; }
+    public String getNamaKelas() {
+        return namaKelas.get();
+    }
 
+    public StringProperty namaKelasProperty() {
+        return namaKelas;
+    }
+
+    public TahunAjaran getTahunAjaran() {
+        return tahunAjaran;
+    }
+
+    public Staff getWaliKelas() {
+        return waliKelas;
+    }
 
     @Override
     public String toString() {
-        // PERBAIKAN: Cek apakah tahunAjaran tidak null sebelum digunakan
-        if (getTahunAjaran() != null && getTahunAjaran().getTahunAjaran() != null) {
-            // Jika lengkap, tampilkan nama dan tahun ajaran
+        // Jika tahun ajaran ada, tampilkan. Jika tidak, hanya nama kelas.
+        if (getTahunAjaran() != null && !getTahunAjaran().getTahunAjaran().isEmpty()) {
             return getNamaKelas() + " (" + getTahunAjaran().getTahunAjaran() + ")";
-        } else {
-            // Jika tidak lengkap (misal: dari halaman Kelola Kelulusan),
-            // cukup kembalikan nama kelasnya saja.
-            return getNamaKelas();
         }
+        return getNamaKelas();
     }
 }

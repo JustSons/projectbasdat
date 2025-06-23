@@ -8,51 +8,93 @@ import java.time.LocalDate;
 
 public class Staff {
     private final IntegerProperty staffId;
-    private final StringProperty nip;
-    private final StringProperty namaStaff;
-    private final StringProperty jabatan;
-    private final StringProperty email;
-    private final StringProperty nomorTelepon;
-    private final StringProperty alamat;
-    private LocalDate tanggalLahir;
+    private final StringProperty staffName;
+    private final StringProperty staffPhoneNumber;
+    private final StringProperty staffEmail;
+    private final StringProperty staffAddress;
+    private LocalDate staffHireDate;
+    
+    // Additional fields for compatibility with existing project
+    private final StringProperty nip; // Keep for backward compatibility
+    private final StringProperty jabatan; // Keep for role display
 
-    public Staff(int staffId, String nip, String namaStaff, String jabatan, String email, String nomorTelepon, String alamat, LocalDate tanggalLahir) {
+    public Staff(int staffId, String staffName, String staffPhoneNumber, String staffEmail, String staffAddress, LocalDate staffHireDate) {
         this.staffId = new SimpleIntegerProperty(staffId);
-        this.nip = (nip != null) ? new SimpleStringProperty(nip) : new SimpleStringProperty("");
-        this.namaStaff = new SimpleStringProperty(namaStaff);
-        this.jabatan = (jabatan != null) ? new SimpleStringProperty(jabatan) : new SimpleStringProperty("");
-        this.email = (email != null) ? new SimpleStringProperty(email) : new SimpleStringProperty("");
-        this.nomorTelepon = (nomorTelepon != null) ? new SimpleStringProperty(nomorTelepon) : new SimpleStringProperty("");
-        this.alamat = (alamat != null) ? new SimpleStringProperty(alamat) : new SimpleStringProperty("");
-        this.tanggalLahir = tanggalLahir;
+        this.staffName = new SimpleStringProperty(staffName != null ? staffName : "");
+        this.staffPhoneNumber = new SimpleStringProperty(staffPhoneNumber != null ? staffPhoneNumber : "");
+        this.staffEmail = new SimpleStringProperty(staffEmail != null ? staffEmail : "");
+        this.staffAddress = new SimpleStringProperty(staffAddress != null ? staffAddress : "");
+        this.staffHireDate = staffHireDate;
+        
+        // Compatibility fields
+        this.nip = new SimpleStringProperty("");
+        this.jabatan = new SimpleStringProperty("");
+    }
+
+    // Constructor with legacy fields for backward compatibility
+    public Staff(int staffId, String nip, String staffName, String jabatan, String staffEmail, String staffPhoneNumber, String staffAddress, LocalDate staffHireDate) {
+        this.staffId = new SimpleIntegerProperty(staffId);
+        this.staffName = new SimpleStringProperty(staffName != null ? staffName : "");
+        this.staffPhoneNumber = new SimpleStringProperty(staffPhoneNumber != null ? staffPhoneNumber : "");
+        this.staffEmail = new SimpleStringProperty(staffEmail != null ? staffEmail : "");
+        this.staffAddress = new SimpleStringProperty(staffAddress != null ? staffAddress : "");
+        this.staffHireDate = staffHireDate;
+        
+        // Compatibility fields
+        this.nip = new SimpleStringProperty(nip != null ? nip : "");
+        this.jabatan = new SimpleStringProperty(jabatan != null ? jabatan : "");
     }
 
     // Constructor simplified for ComboBox display
-    public Staff(int staffId, String namaStaff) {
-        this(staffId, null, namaStaff, null, null, null, null, null);
+    public Staff(int staffId, String staffName) {
+        this(staffId, staffName, null, null, null, null);
     }
 
-    // Getters
+    // Primary getters (following schema)
     public int getStaffId() { return staffId.get(); }
-    public String getNip() { return nip.get(); }
-    public String getNamaStaff() { return namaStaff.get(); }
-    public String getJabatan() { return jabatan.get(); }
-    public String getEmail() { return email.get(); }
-    public String getNomorTelepon() { return nomorTelepon.get(); }
-    public String getAlamat() { return alamat.get(); }
-    public LocalDate getTanggalLahir() { return tanggalLahir; }
+    public String getStaffName() { return staffName.get(); }
+    public String getStaffPhoneNumber() { return staffPhoneNumber.get(); }
+    public String getStaffEmail() { return staffEmail.get(); }
+    public String getStaffAddress() { return staffAddress.get(); }
+    public LocalDate getStaffHireDate() { return staffHireDate; }
 
-    // Property Getters
+    // Legacy getters for compatibility
+    public String getNip() { return nip.get(); }
+    public String getNamaStaff() { return staffName.get(); } // Alias for legacy code
+    public String getJabatan() { return jabatan.get(); }
+    public String getEmail() { return staffEmail.get(); } // Alias
+    public String getNomorTelepon() { return staffPhoneNumber.get(); } // Alias
+    public String getAlamat() { return staffAddress.get(); } // Alias
+    public LocalDate getTanggalLahir() { return staffHireDate; } // Alias (semantically different but for compatibility)
+
+    // Primary setters
+    public void setStaffName(String staffName) { this.staffName.set(staffName); }
+    public void setStaffPhoneNumber(String staffPhoneNumber) { this.staffPhoneNumber.set(staffPhoneNumber); }
+    public void setStaffEmail(String staffEmail) { this.staffEmail.set(staffEmail); }
+    public void setStaffAddress(String staffAddress) { this.staffAddress.set(staffAddress); }
+    public void setStaffHireDate(LocalDate staffHireDate) { this.staffHireDate = staffHireDate; }
+    
+    // Legacy setters
+    public void setNip(String nip) { this.nip.set(nip); }
+    public void setJabatan(String jabatan) { this.jabatan.set(jabatan); }
+
+    // Property getters (for TableView binding)
     public IntegerProperty staffIdProperty() { return staffId; }
+    public StringProperty staffNameProperty() { return staffName; }
+    public StringProperty staffPhoneNumberProperty() { return staffPhoneNumber; }
+    public StringProperty staffEmailProperty() { return staffEmail; }
+    public StringProperty staffAddressProperty() { return staffAddress; }
+    
+    // Legacy property getters
     public StringProperty nipProperty() { return nip; }
-    public StringProperty namaStaffProperty() { return namaStaff; }
+    public StringProperty namaStaffProperty() { return staffName; } // Alias
     public StringProperty jabatanProperty() { return jabatan; }
-    public StringProperty emailProperty() { return email; }
-    public StringProperty nomorTeleponProperty() { return nomorTelepon; }
-    public StringProperty alamatProperty() { return alamat; }
+    public StringProperty emailProperty() { return staffEmail; } // Alias
+    public StringProperty nomorTeleponProperty() { return staffPhoneNumber; } // Alias
+    public StringProperty alamatProperty() { return staffAddress; } // Alias
 
     @Override
     public String toString() {
-        return getNamaStaff(); // Penting untuk ComboBox
+        return getStaffName(); // For ComboBox display
     }
 }

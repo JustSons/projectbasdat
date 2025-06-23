@@ -77,10 +77,21 @@ public class AdminDashboardController implements Initializable {
             naikKelasButton.setVisible(true);
             kelolaMapelButton.setVisible(true); // Admin bisa kelola tahun ajaran
         } else if (isGuru) {
-            kelolaJadwalButton.setVisible(true);
-            masukkanNilaiButton.setVisible(true);
+            // Arahkan guru ke dashboard khusus guru
+            try {
+                SceneManager.getInstance().loadScene("/org/example/sekolahApp/view/GuruDashboard.fxml");
+            } catch (IOException e) {
+                e.printStackTrace();
+                showAlert("Load Error", "Gagal membuka dashboard guru.");
+            }
         } else if (isWaliKelas) {
-            cetakRaporButton.setVisible(true);
+            // Arahkan wali kelas ke dashboard khusus guru/wali kelas
+            try {
+                SceneManager.getInstance().loadScene("/org/example/sekolahApp/view/GuruDashboard.fxml");
+            } catch (IOException e) {
+                e.printStackTrace();
+                showAlert("Load Error", "Gagal membuka dashboard wali kelas.");
+            }
         }
 
     }

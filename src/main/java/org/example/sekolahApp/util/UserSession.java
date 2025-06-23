@@ -19,23 +19,13 @@ public class UserSession {
         this.waliKelasId = waliKelasId;
     }
 
-    // Menggunakan eager initialization atau thread-safe lazy initialization jika diperlukan
-    // Untuk kesederhanaan dan menghindari potensi race condition pada getInstance()
-    // kita bisa menggunakan pendekatan inner static class atau langsung menginisialisasi.
-    // Namun, jika kamu sudah punya 'synchronized' untuk getInstance(), kita bisa modifikasi sedikit.
-
-    // Modified getInstance() to ensure proper initialization
     public static synchronized UserSession getInstance() {
         if (instance == null) {
-            // Jika dipanggil tanpa createSession, ini mungkin menunjukkan error
-            // atau kebutuhan untuk default state.
-            // Untuk memastikan session selalu diinisialisasi melalui login:
             throw new IllegalStateException("UserSession belum diinisialisasi. Pastikan login dilakukan terlebih dahulu.");
         }
         return instance;
     }
 
-    // Modified createSession to be the *only* way to set the instance
     public static synchronized UserSession createSession(int userId, String username, String role, int referenceId, Integer waliKelasId) {
         instance = new UserSession(userId, username, role, referenceId, waliKelasId);
         System.out.println("UserSession created: " + instance.toString()); // Debugging
@@ -43,15 +33,32 @@ public class UserSession {
     }
 
     public static synchronized void cleanUserSession() {
-        // Reset instance to null to clear session
         instance = null;
         System.out.println("UserSession cleaned."); // Debugging
     }
 
     public boolean isLoggedIn() {
-        // Cek apakah instance tidak null (sesi aktif)
         return instance != null && instance.getUserId() != 0;
     }
+
+    // --- METODE YANG HILANG DITAMBAHKAN DI SINI ---
+    public String getDashboardFxml() {
+        if (role == null) {
+            return "/org/example/sekolahApp/view/Login.fxml"; // Fallback
+        }
+        switch (role) {
+            case "admin":
+            case "guru":
+            case "wali_kelas":
+                return "/org/example/sekolahApp/view/admin_dashboard.fxml";
+            case "siswa":
+                return "/org/example/sekolahApp/view/SiswaDashboard.fxml";
+            default:
+                return "/org/example/sekolahApp/view/Login.fxml";
+        }
+    }
+    // ---------------------------------------------
+
 
     // Getters
     public int getUserId() {
@@ -70,30 +77,29 @@ public class UserSession {
         return referenceId;
     }
 
-    public Integer getWaliKelasId() { // Getter baru
+    public Integer getWaliKelasId() {
         return waliKelasId;
     }
 
-    // Metode helper untuk role (dari jawaban sebelumnya)
+    // Metode helper untuk role
     public boolean isAdmin() {
         return "admin".equalsIgnoreCase(role);
     }
 
     public boolean isGuru() {
-        // Seorang wali kelas juga bisa dianggap guru dalam konteks beberapa fitur guru.
-        // Kamu bisa menyesuaikan logika ini:
-        // return "guru".equalsIgnoreCase(role) || "wali_kelas".equalsIgnoreCase(role);
-        // Atau jika 'guru' murni hanya role guru tanpa tugas wali:
-        return "guru".equalsIgnoreCase(role);
+        // Wali kelas juga seorang guru
+        return "guru".equalsIgnoreCase(role) || "wali_kelas".equalsIgnoreCase(role);
     }
 
-    public boolean isWaliKelas() { // Getter baru
-        return "wali_kelas".equalsIgnoreCase(role);// Pastikan role dan ID kelasnya ada
+    public boolean isWaliKelas() {
+        return "wali_kelas".equalsIgnoreCase(role);
     }
 
     public boolean isSiswa() {
         return "siswa".equalsIgnoreCase(role);
     }
+
+
 
     @Override
     public String toString() {

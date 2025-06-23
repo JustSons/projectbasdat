@@ -5,10 +5,8 @@ import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.collections.transformation.SortedList;
 import javafx.fxml.FXML;
-import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
-import javafx.scene.layout.GridPane;
 import org.example.sekolahApp.db.DatabaseConnection;
 import org.example.sekolahApp.model.Jadwal;
 import org.example.sekolahApp.model.Kelas;
@@ -19,16 +17,13 @@ import org.example.sekolahApp.util.SceneManager;
 import org.example.sekolahApp.util.UserSession;
 
 import java.io.IOException;
-import java.net.URL;
 import java.sql.*;
 import java.time.LocalTime;
 import java.time.format.DateTimeParseException;
 import java.util.Optional;
-import java.util.ResourceBundle;
 
-public class KelolaJadwalController implements Initializable {
+public class KelolaJadwalController {
 
-    // --- FXML Declarations ---
     @FXML private TableView<Jadwal> jadwalTableView;
     @FXML private TableColumn<Jadwal, Integer> idColumn;
     @FXML private TableColumn<Jadwal, String> kelasColumn;
@@ -48,90 +43,68 @@ public class KelolaJadwalController implements Initializable {
     @FXML private Button saveButton;
     @FXML private Button clearButton;
     @FXML private Button handleDeleteButton;
-    @FXML private GridPane formGridPane; // Pastikan fx:id ini ada di FXML
 
-    // --- ObservableList Declarations (No Duplicates) ---
     private final ObservableList<Jadwal> jadwalList = FXCollections.observableArrayList();
     private final ObservableList<Kelas> kelasList = FXCollections.observableArrayList();
     private final ObservableList<Staff> staffList = FXCollections.observableArrayList();
     private final ObservableList<MataPelajaran> mataPelajaranList = FXCollections.observableArrayList();
-
     private Jadwal selectedJadwal = null;
 
-    @Override
-    public void initialize(URL url, ResourceBundle resourceBundle) {
+    @FXML
+    public void initialize() {
         setupTableColumns();
-        setupComboBoxes();
         loadInitialData();
         setupSearchFilter();
+        setupForm();
+    }
+
+    private void setupForm() {
+        hariComboBox.setItems(FXCollections.observableArrayList("Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"));
 
         jadwalTableView.getSelectionModel().selectedItemProperty().addListener(
-                (observable, oldValue, newValue) -> populateForm(newValue));
+                (obs, oldVal, newVal) -> populateForm(newVal));
 
+        // Atur visibilitas dan fungsionalitas berdasarkan peran pengguna
         UserSession session = UserSession.getInstance();
-        if (session.isGuru() || session.isSiswa()) { // Guru atau Siswa hanya bisa melihat
-            setFormReadOnly(true);
-            saveButton.setVisible(false);
-            clearButton.setVisible(false);
-            handleDeleteButton.setVisible(false);
-            // Nonaktifkan selection listener jika tidak ada edit
-            jadwalTableView.getSelectionModel().selectedItemProperty().removeListener(
-                    (observable, oldValue, newValue) -> populateForm(newValue));
-            jadwalTableView.getSelectionModel().setSelectionMode(SelectionMode.SINGLE); // Pastikan mode single selection
-        } else if (session.isWaliKelas()){ // Admin atau Wali Kelas (jika diizinkan mengedit jadwal)
-            setFormReadOnly(false);
-            saveButton.setVisible(false);
-            clearButton.setVisible(false);
-            handleDeleteButton.setVisible(false);
-        }
+        boolean isAdmin = session.isAdmin();
+        saveButton.setVisible(isAdmin);
+        clearButton.setVisible(isAdmin);
+        handleDeleteButton.setVisible(isAdmin);
+        // Form di-disable jika bukan admin
+        kelasComboBox.setDisable(!isAdmin);
+        hariComboBox.setDisable(!isAdmin);
+        jamMulaiField.setEditable(isAdmin);
+        jamSelesaiField.setEditable(isAdmin);
+        guruComboBox.setDisable(!isAdmin);
+        mataPelajaranComboBox.setDisable(!isAdmin);
     }
 
     private void setupTableColumns() {
         idColumn.setCellValueFactory(new PropertyValueFactory<>("jadwalId"));
-        kelasColumn.setCellValueFactory(cellData -> cellData.getValue().getKelas().namaKelasProperty());
         hariColumn.setCellValueFactory(new PropertyValueFactory<>("hari"));
         jamMulaiColumn.setCellValueFactory(new PropertyValueFactory<>("jamMulai"));
         jamSelesaiColumn.setCellValueFactory(new PropertyValueFactory<>("jamSelesai"));
+        // Mengambil data dari objek relasi
+        kelasColumn.setCellValueFactory(cellData -> cellData.getValue().getKelas().namaKelasProperty());
         guruColumn.setCellValueFactory(cellData -> cellData.getValue().getGuru().namaStaffProperty());
         mapelColumn.setCellValueFactory(cellData -> cellData.getValue().getMapel().namaMapelProperty());
-    }
-
-    private void setupComboBoxes() {
-        hariComboBox.setItems(FXCollections.observableArrayList("Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"));
     }
 
     private void loadInitialData() {
         loadKelasData();
         loadStaffData();
-        loadMataPelajaranData(); // Hanya satu pemanggilan yang benar
+        loadMataPelajaranData();
         loadJadwalData();
-    }
-
-    private void setFormReadOnly(boolean readOnly) {
-        // Disable seluruh form, dan atur visibilitas tombol
-        formGridPane.setDisable(readOnly);
-        saveButton.setVisible(!readOnly);
-        clearButton.setVisible(!readOnly);
-        handleDeleteButton.setVisible(!readOnly);kelasComboBox.setDisable(readOnly);
-        hariComboBox.setDisable(readOnly);
-        jamMulaiField.setEditable(!readOnly);
-        jamSelesaiField.setEditable(!readOnly);
-        guruComboBox.setDisable(readOnly);
-        mataPelajaranComboBox.setDisable(readOnly);
-
     }
 
     private void loadKelasData() {
         kelasList.clear();
-        String sql = "SELECT k.kelas_id, k.nama_kelas, k.tahun_ajaran_id, ta.tahun_ajaran " +
+        String sql = "SELECT k.kelas_id, k.nama_kelas, ta.tahun_ajaran_id, ta.tahun_ajaran, ta.status " +
                 "FROM kelas k JOIN tahun_ajaran ta ON k.tahun_ajaran_id = ta.tahun_ajaran_id " +
                 "WHERE ta.status = 'aktif' ORDER BY k.nama_kelas ASC";
-        try (Connection conn = DatabaseConnection.getConnection();
-             Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery(sql)) {
+        try (Connection conn = DatabaseConnection.getConnection(); Statement stmt = conn.createStatement(); ResultSet rs = stmt.executeQuery(sql)) {
             while (rs.next()) {
-                TahunAjaran ta = new TahunAjaran(rs.getInt("tahun_ajaran_id"), rs.getString("tahun_ajaran"), "aktif");
-                // Constructor Kelas butuh objek Staff, kita bisa berikan null jika tidak diperlukan di sini
+                TahunAjaran ta = new TahunAjaran(rs.getInt("tahun_ajaran_id"), rs.getString("tahun_ajaran"), rs.getString("status"));
                 kelasList.add(new Kelas(rs.getInt("kelas_id"), rs.getString("nama_kelas"), ta, null));
             }
             kelasComboBox.setItems(kelasList);
@@ -146,13 +119,12 @@ public class KelolaJadwalController implements Initializable {
         String sql = "SELECT staff_id, nama_staff FROM staff WHERE jabatan = 'Guru' OR jabatan = 'Wali Kelas' ORDER BY nama_staff ASC";
         try (Connection conn = DatabaseConnection.getConnection(); Statement stmt = conn.createStatement(); ResultSet rs = stmt.executeQuery(sql)) {
             while (rs.next()) {
-                // Constructor Staff yang simpel (hanya id dan nama)
                 staffList.add(new Staff(rs.getInt("staff_id"), rs.getString("nama_staff")));
             }
             guruComboBox.setItems(staffList);
         } catch (SQLException e) {
             e.printStackTrace();
-            showAlert(Alert.AlertType.ERROR, "Database Error", "Gagal memuat data guru/staff.");
+            showAlert(Alert.AlertType.ERROR, "Database Error", "Gagal memuat data guru.");
         }
     }
 
@@ -172,8 +144,9 @@ public class KelolaJadwalController implements Initializable {
 
     private void loadJadwalData() {
         jadwalList.clear();
-        String sql = "SELECT j.jadwal_id, k.kelas_id, k.nama_kelas, ta.tahun_ajaran_id, ta.tahun_ajaran, ta.status, " +
-                "j.hari, j.jam_mulai, j.jam_selesai, s.staff_id, s.nama_staff, " +
+        String sql = "SELECT j.jadwal_id, j.hari, j.jam_mulai, j.jam_selesai, " +
+                "k.kelas_id, k.nama_kelas, ta.tahun_ajaran_id, ta.tahun_ajaran, ta.status, " +
+                "s.staff_id, s.nama_staff, " +
                 "mp.mapel_id, mp.kode_mapel, mp.nama_mapel " +
                 "FROM jadwal j " +
                 "JOIN kelas k ON j.kelas_id = k.kelas_id " +
@@ -187,7 +160,7 @@ public class KelolaJadwalController implements Initializable {
                 Kelas kelas = new Kelas(rs.getInt("kelas_id"), rs.getString("nama_kelas"), ta, null);
                 Staff guru = new Staff(rs.getInt("staff_id"), rs.getString("nama_staff"));
                 MataPelajaran mapel = new MataPelajaran(rs.getInt("mapel_id"), rs.getString("kode_mapel"), rs.getString("nama_mapel"));
-                jadwalList.add(new Jadwal(rs.getInt("jadwal_id"), kelas, rs.getString("hari"), rs.getTime("jam_mulai").toLocalTime(), rs.getTime("jam_selesai").toLocalTime(), guru, mapel));
+                jadwalList.add(new Jadwal(rs.getInt("jadwal_id"), rs.getString("hari"), rs.getTime("jam_mulai").toLocalTime(), rs.getTime("jam_selesai").toLocalTime(), kelas, mapel, guru));
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -196,16 +169,15 @@ public class KelolaJadwalController implements Initializable {
     }
 
     private void setupSearchFilter() {
-        FilteredList<Jadwal> filteredData = new FilteredList<>(jadwalList, b -> true);
-        searchField.textProperty().addListener((observable, oldValue, newValue) -> {
+        FilteredList<Jadwal> filteredData = new FilteredList<>(jadwalList, p -> true);
+        searchField.textProperty().addListener((obs, oldVal, newVal) -> {
             filteredData.setPredicate(jadwal -> {
-                if (newValue == null || newValue.isEmpty()) return true;
-                String lowerCaseFilter = newValue.toLowerCase();
+                if (newVal == null || newVal.isEmpty()) return true;
+                String lowerCaseFilter = newVal.toLowerCase();
                 if (jadwal.getKelas().getNamaKelas().toLowerCase().contains(lowerCaseFilter)) return true;
                 if (jadwal.getGuru().getNamaStaff().toLowerCase().contains(lowerCaseFilter)) return true;
                 if (jadwal.getMapel().getNamaMapel().toLowerCase().contains(lowerCaseFilter)) return true;
-                if (jadwal.getHari().toLowerCase().contains(lowerCaseFilter)) return true;
-                return false;
+                return jadwal.getHari().toLowerCase().contains(lowerCaseFilter);
             });
         });
         SortedList<Jadwal> sortedData = new SortedList<>(filteredData);
@@ -215,16 +187,18 @@ public class KelolaJadwalController implements Initializable {
 
     private void populateForm(Jadwal jadwal) {
         selectedJadwal = jadwal;
-        if (jadwal != null) {
-            kelasComboBox.setValue(jadwal.getKelas());
+        if (jadwal == null) {
+            clearForm();
+        } else {
+            // Cocokkan objek di ComboBox berdasarkan ID, bukan referensi objek
+            kelasComboBox.setValue(kelasList.stream().filter(k -> k.getKelasId() == jadwal.getKelas().getKelasId()).findFirst().orElse(null));
+            guruComboBox.setValue(staffList.stream().filter(s -> s.getStaffId() == jadwal.getGuru().getStaffId()).findFirst().orElse(null));
+            mataPelajaranComboBox.setValue(mataPelajaranList.stream().filter(m -> m.getMapelId() == jadwal.getMapel().getMapelId()).findFirst().orElse(null));
+
             hariComboBox.setValue(jadwal.getHari());
             jamMulaiField.setText(jadwal.getJamMulai().toString());
             jamSelesaiField.setText(jadwal.getJamSelesai().toString());
-            guruComboBox.setValue(jadwal.getGuru());
-            mataPelajaranComboBox.setValue(jadwal.getMapel());
             saveButton.setText("Update");
-        } else {
-            clearForm();
         }
     }
 
@@ -239,9 +213,38 @@ public class KelolaJadwalController implements Initializable {
         }
     }
 
+    @FXML
+    private void handleDelete() {
+        if (selectedJadwal == null) {
+            showAlert(Alert.AlertType.WARNING, "Peringatan", "Pilih jadwal yang akan dihapus.");
+            return;
+        }
+        Alert confirm = new Alert(Alert.AlertType.CONFIRMATION, "Yakin ingin menghapus jadwal ini?", ButtonType.YES, ButtonType.NO);
+        confirm.showAndWait().ifPresent(response -> {
+            if (response == ButtonType.YES) {
+                String sql = "DELETE FROM jadwal WHERE jadwal_id = ?";
+                try (Connection conn = DatabaseConnection.getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
+                    pstmt.setInt(1, selectedJadwal.getJadwalId());
+                    pstmt.executeUpdate();
+                    showAlert(Alert.AlertType.INFORMATION, "Sukses", "Jadwal berhasil dihapus.");
+                    loadJadwalData();
+                    clearForm();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                    showAlert(Alert.AlertType.ERROR, "Database Error", "Gagal menghapus jadwal.");
+                }
+            }
+        });
+    }
+
+    @FXML
+    private void handleClear() {
+        clearForm();
+    }
+
     private void insertJadwal() {
-        String sql = "INSERT INTO jadwal (kelas_id, hari, jam_mulai, jam_selesai, guru_id, mapel_id) VALUES (?, ?, ?, ?, ?, ?)";
-        try (Connection conn = DatabaseConnection.getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
+        String sql = "INSERT INTO jadwal (kelas_id, mapel_id, guru_id, hari, jam_mulai, jam_selesai) VALUES (?, ?, ?, ?, ?, ?)";
+        try (Connection conn = DatabaseConnection.getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             setJadwalStatementParameters(pstmt);
             pstmt.executeUpdate();
             showAlert(Alert.AlertType.INFORMATION, "Sukses", "Jadwal berhasil ditambahkan.");
@@ -249,12 +252,12 @@ public class KelolaJadwalController implements Initializable {
             clearForm();
         } catch (SQLException e) {
             e.printStackTrace();
-            showAlert(Alert.AlertType.ERROR, "Database Error", "Gagal menambahkan jadwal. Pastikan tidak ada jadwal bentrok.");
+            showAlert(Alert.AlertType.ERROR, "Database Error", "Gagal menambahkan jadwal.");
         }
     }
 
     private void updateJadwal() {
-        String sql = "UPDATE jadwal SET kelas_id = ?, hari = ?, jam_mulai = ?, jam_selesai = ?, guru_id = ?, mapel_id = ? WHERE jadwal_id = ?";
+        String sql = "UPDATE jadwal SET kelas_id=?, mapel_id=?, guru_id=?, hari=?, jam_mulai=?, jam_selesai=? WHERE jadwal_id=?";
         try (Connection conn = DatabaseConnection.getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
             setJadwalStatementParameters(pstmt);
             pstmt.setInt(7, selectedJadwal.getJadwalId());
@@ -268,49 +271,30 @@ public class KelolaJadwalController implements Initializable {
         }
     }
 
-    @FXML
-    private void handleDelete() {
-        Jadwal jadwalToDelete = jadwalTableView.getSelectionModel().getSelectedItem();
-        if (jadwalToDelete == null) {
-            showAlert(Alert.AlertType.WARNING, "Tidak Ada Pilihan", "Pilih jadwal yang akan dihapus.");
-            return;
-        }
+    // GANTI metode lama Anda dengan versi yang sudah diperbaiki ini.
+    private void setJadwalStatementParameters(PreparedStatement pstmt) throws SQLException {
+        // Ambil nilai dari setiap komponen form
+        Kelas kelas = kelasComboBox.getValue();
+        MataPelajaran mapel = mataPelajaranComboBox.getValue();
+        Staff guru = guruComboBox.getValue();
+        String hari = hariComboBox.getValue();
 
-        Alert confirmAlert = new Alert(Alert.AlertType.CONFIRMATION, "Apakah Anda yakin ingin menghapus jadwal ini?", ButtonType.YES, ButtonType.NO);
-        confirmAlert.setTitle("Konfirmasi Hapus");
-        Optional<ButtonType> result = confirmAlert.showAndWait();
-        if (result.isPresent() && result.get() == ButtonType.YES) {
-            String sql = "DELETE FROM jadwal WHERE jadwal_id = ?";
-            try (Connection conn = DatabaseConnection.getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
-                pstmt.setInt(1, jadwalToDelete.getJadwalId());
-                pstmt.executeUpdate();
-                showAlert(Alert.AlertType.INFORMATION, "Sukses", "Jadwal berhasil dihapus.");
-                loadJadwalData();
-                clearForm();
-            } catch (SQLException e) {
-                e.printStackTrace();
-                showAlert(Alert.AlertType.ERROR, "Database Error", "Gagal menghapus jadwal.");
-            }
-        }
-    }
+        // PERBAIKAN UTAMA: Konversi teks waktu menggunakan LocalTime.parse() terlebih dahulu
+        LocalTime jamMulai = LocalTime.parse(jamMulaiField.getText());
+        LocalTime jamSelesai = LocalTime.parse(jamSelesaiField.getText());
 
-    @FXML
-    private void handleBack() {
-        try {
-            SceneManager.getInstance().loadScene("/org/example/sekolahApp/view/admin_dashboard.fxml");
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    @FXML
-    private void handleClear() {
-        clearForm();
+        // Set parameter ke statement SQL
+        pstmt.setInt(1, kelas.getKelasId());
+        pstmt.setInt(2, mapel.getMapelId());
+        pstmt.setInt(3, guru.getStaffId());
+        pstmt.setString(4, hari);
+        pstmt.setTime(5, Time.valueOf(jamMulai));
+        pstmt.setTime(6, Time.valueOf(jamSelesai));
     }
 
     private void clearForm() {
-        jadwalTableView.getSelectionModel().clearSelection();
         selectedJadwal = null;
+        jadwalTableView.getSelectionModel().clearSelection();
         kelasComboBox.setValue(null);
         hariComboBox.setValue(null);
         jamMulaiField.clear();
@@ -321,29 +305,32 @@ public class KelolaJadwalController implements Initializable {
     }
 
     private boolean isFormValid() {
-        if (kelasComboBox.getValue() == null || hariComboBox.getValue() == null ||
-                jamMulaiField.getText().isEmpty() || jamSelesaiField.getText().isEmpty() ||
-                guruComboBox.getValue() == null || mataPelajaranComboBox.getValue() == null) {
-            showAlert(Alert.AlertType.WARNING, "Validasi Gagal", "Semua field wajib diisi.");
-            return false;
-        }
+        String errorMessage = "";
+        if (kelasComboBox.getValue() == null) errorMessage += "Kelas harus dipilih.\n";
+        if (hariComboBox.getValue() == null) errorMessage += "Hari harus dipilih.\n";
+        if (guruComboBox.getValue() == null) errorMessage += "Guru harus dipilih.\n";
+        if (mataPelajaranComboBox.getValue() == null) errorMessage += "Mata pelajaran harus dipilih.\n";
+        if (jamMulaiField.getText().isBlank()) errorMessage += "Jam mulai tidak boleh kosong.\n";
+        if (jamSelesaiField.getText().isBlank()) errorMessage += "Jam selesai tidak boleh kosong.\n";
+
         try {
             LocalTime.parse(jamMulaiField.getText());
             LocalTime.parse(jamSelesaiField.getText());
-            return true;
         } catch (DateTimeParseException e) {
-            showAlert(Alert.AlertType.ERROR, "Format Waktu Salah", "Gunakan format HH:MM untuk jam (contoh: 08:00).");
+            errorMessage += "Format waktu salah. Gunakan HH:MM (contoh: 08:00).\n";
+        }
+
+        if (errorMessage.isEmpty()) {
+            return true;
+        } else {
+            showAlert(Alert.AlertType.WARNING, "Validasi Gagal", errorMessage);
             return false;
         }
     }
 
-    private void setJadwalStatementParameters(PreparedStatement pstmt) throws SQLException {
-        pstmt.setInt(1, kelasComboBox.getValue().getKelasId());
-        pstmt.setString(2, hariComboBox.getValue());
-        pstmt.setTime(3, Time.valueOf(LocalTime.parse(jamMulaiField.getText())));
-        pstmt.setTime(4, Time.valueOf(LocalTime.parse(jamSelesaiField.getText())));
-        pstmt.setInt(5, guruComboBox.getValue().getStaffId());
-        pstmt.setInt(6, mataPelajaranComboBox.getValue().getMapelId());
+    @FXML
+    private void handleBack() throws IOException {
+        SceneManager.getInstance().loadScene(UserSession.getInstance().getDashboardFxml());
     }
 
     private void showAlert(Alert.AlertType alertType, String title, String message) {

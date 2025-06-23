@@ -19,6 +19,9 @@ public class Main extends Application {
         SceneManager.getInstance().loadScene(fxmlPath); // Pastikan ukuran ini relevan
         primaryStage.setMaximized(true);
         primaryStage.initStyle(StageStyle.UTILITY);
+        primaryStage.setMinWidth(1024);
+        primaryStage.setMinHeight(768);
+
         primaryStage.show();
     }
 
@@ -41,6 +44,7 @@ public class Main extends Application {
         //    Koneksi akan dibuat sesuai kebutuhan di dalam controller menggunakan try-with-resources.
         // Pesan "Memastikan koneksi database dibuat saat aplikasi pertama kali berjalan"
         // sudah tidak relevan dengan implementasi getConnection() yang baru (membuat koneksi baru setiap kali).
+
 
         launch(args);
     }
