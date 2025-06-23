@@ -1,67 +1,88 @@
 package org.example.sekolahApp.model;
 
 import javafx.beans.property.IntegerProperty;
-import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleIntegerProperty;
-import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 
 public class Kelas {
-    private final IntegerProperty kelasId;
-    private final StringProperty namaKelas;
-    private final ObjectProperty<TahunAjaran> tahunAjaran; // Reference to TahunAjaran object
-    private final ObjectProperty<Staff> waliKelas; // Reference to Staff object for wali kelas
+    // Primary fields following CLASS table schema
+    private final IntegerProperty classId;
+    private final StringProperty className;
+    private final IntegerProperty waliKelasId; // Foreign key to WALI_KELAS table
+    
+    // Additional fields for display purposes
+    private final StringProperty waliKelasName; // For displaying wali kelas name
+    private final StringProperty tahunAjaranNama; // For backward compatibility
 
-    public Kelas(int kelasId, String namaKelas, TahunAjaran tahunAjaran, Staff waliKelas) {
-        this.kelasId = new SimpleIntegerProperty(kelasId);
-        this.namaKelas = new SimpleStringProperty(namaKelas);
-        this.tahunAjaran = new SimpleObjectProperty<>(tahunAjaran);
-        this.waliKelas = new SimpleObjectProperty<>(waliKelas);
+    // Constructor following CLASS schema
+    public Kelas(int classId, String className, Integer waliKelasId) {
+        this.classId = new SimpleIntegerProperty(classId);
+        this.className = new SimpleStringProperty(className != null ? className : "");
+        this.waliKelasId = new SimpleIntegerProperty(waliKelasId != null ? waliKelasId : 0);
+        
+        // Additional fields for display
+        this.waliKelasName = new SimpleStringProperty("");
+        this.tahunAjaranNama = new SimpleStringProperty("");
     }
 
-    // Constructor simpel, hanya untuk ID dan Nama
-    public Kelas(int kelasId, String namaKelas) {
-        this.kelasId = new SimpleIntegerProperty(kelasId);
-        this.namaKelas = new SimpleStringProperty(namaKelas);
-        // Atribut lain bisa di-set ke null agar tidak error
-        this.tahunAjaran = new SimpleObjectProperty<>(null);
-        this.waliKelas = new SimpleObjectProperty<>(null);
+    // Constructor with additional display fields
+    public Kelas(int classId, String className, Integer waliKelasId, String waliKelasName) {
+        this.classId = new SimpleIntegerProperty(classId);
+        this.className = new SimpleStringProperty(className != null ? className : "");
+        this.waliKelasId = new SimpleIntegerProperty(waliKelasId != null ? waliKelasId : 0);
+        this.waliKelasName = new SimpleStringProperty(waliKelasName != null ? waliKelasName : "");
+        this.tahunAjaranNama = new SimpleStringProperty("");
     }
 
-    // Constructor simplified if loading from DB and only need IDs
-    // Ini mungkin tidak terlalu dibutuhkan lagi karena kita memuat objek penuh
-    // public Kelas(int kelasId, String namaKelas, int tahunAjaranId, String tahunAjaranStr, Integer waliKelasId, String waliKelasNama) {
-    //     this(kelasId, namaKelas,
-    //          new TahunAjaran(tahunAjaranId, tahunAjaranStr, null),
-    //          (waliKelasId != null && waliKelasNama != null) ? new Staff(waliKelasId, waliKelasNama) : null
-    //     );
-    // }
+    // Legacy constructor for backward compatibility
+    public Kelas(int kelasId, String namaKelas, int tahunAjaranId, String tahunAjaranNama, Integer waliKelasId, String waliKelasName) {
+        this.classId = new SimpleIntegerProperty(kelasId);
+        this.className = new SimpleStringProperty(namaKelas != null ? namaKelas : "");
+        this.waliKelasId = new SimpleIntegerProperty(waliKelasId != null ? waliKelasId : 0);
+        this.waliKelasName = new SimpleStringProperty(waliKelasName != null ? waliKelasName : "");
+        this.tahunAjaranNama = new SimpleStringProperty(tahunAjaranNama != null ? tahunAjaranNama : "");
+    }
 
+    // Primary getters (following schema)
+    public int getClassId() { return classId.get(); }
+    public String getClassName() { return className.get(); }
+    public int getWaliKelasId() { return waliKelasId.get(); }
 
-    // Getters
-    public int getKelasId() { return kelasId.get(); }
-    public String getNamaKelas() { return namaKelas.get(); }
-    public TahunAjaran getTahunAjaran() { return tahunAjaran.get(); }
-    public Staff getWaliKelas() { return waliKelas.get(); }
+    // Additional getters for display
+    public String getWaliKelasName() { return waliKelasName.get(); }
+    public String getTahunAjaranNama() { return tahunAjaranNama.get(); }
 
-    // Property Getters
-    public IntegerProperty kelasIdProperty() { return kelasId; }
-    public StringProperty namaKelasProperty() { return namaKelas; }
-    public ObjectProperty<TahunAjaran> tahunAjaranProperty() { return tahunAjaran; }
-    public ObjectProperty<Staff> waliKelasProperty() { return waliKelas; }
+    // Legacy getters for compatibility
+    public int getKelasId() { return classId.get(); } // Alias
+    public String getNamaKelas() { return className.get(); } // Alias
 
+    // Primary setters
+    public void setClassName(String className) { this.className.set(className); }
+    public void setWaliKelasId(int waliKelasId) { this.waliKelasId.set(waliKelasId); }
+
+    // Additional setters for display
+    public void setWaliKelasName(String waliKelasName) { this.waliKelasName.set(waliKelasName); }
+    public void setTahunAjaranNama(String tahunAjaranNama) { this.tahunAjaranNama.set(tahunAjaranNama); }
+
+    // Legacy setters for compatibility
+    public void setNamaKelas(String namaKelas) { this.className.set(namaKelas); }
+
+    // Primary property getters (for TableView binding)
+    public IntegerProperty classIdProperty() { return classId; }
+    public StringProperty classNameProperty() { return className; }
+    public IntegerProperty waliKelasIdProperty() { return waliKelasId; }
+
+    // Additional property getters for display
+    public StringProperty waliKelasNameProperty() { return waliKelasName; }
+    public StringProperty tahunAjaranNamaProperty() { return tahunAjaranNama; }
+
+    // Legacy property getters for compatibility
+    public IntegerProperty kelasIdProperty() { return classId; } // Alias
+    public StringProperty namaKelasProperty() { return className; } // Alias
 
     @Override
     public String toString() {
-        // PERBAIKAN: Cek apakah tahunAjaran tidak null sebelum digunakan
-        if (getTahunAjaran() != null && getTahunAjaran().getTahunAjaran() != null) {
-            // Jika lengkap, tampilkan nama dan tahun ajaran
-            return getNamaKelas() + " (" + getTahunAjaran().getTahunAjaran() + ")";
-        } else {
-            // Jika tidak lengkap (misal: dari halaman Kelola Kelulusan),
-            // cukup kembalikan nama kelasnya saja.
-            return getNamaKelas();
-        }
+        return getClassName(); // For ComboBox display
     }
 }

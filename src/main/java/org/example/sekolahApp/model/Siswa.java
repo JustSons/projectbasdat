@@ -9,89 +9,144 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Siswa {
-    private final IntegerProperty id;
-    private final StringProperty nis;
-    private final StringProperty nama;
-    private final StringProperty alamat;
-    private final StringProperty jenisKelamin;
-    private final StringProperty agama;
-    private LocalDate tanggalLahir;
-    private final StringProperty namaOrangTua;
-    private final StringProperty teleponOrangTua;
-    private final StringProperty kelasSaatIniNama;
-    private final StringProperty status; // Pastikan field ini ada
-     private final List<Nilai> daftarNilai;
+    // Primary fields following STUDENT table schema
+    private final IntegerProperty studentId;
+    private final StringProperty studentName;
+    private final StringProperty studentAddress;
+    private final StringProperty studentGender; // 'L' or 'P' 
+    private final StringProperty studentParentsPhoneNumber;
+    private final StringProperty studentReligion;
+    private LocalDate studentBirthDate;
+    
+    // Additional fields for compatibility with existing project
+    private final StringProperty nis; // Keep for backward compatibility
+    private final StringProperty kelasSaatIniNama; // Current class name
+    private final StringProperty status; // Student status
+    private final List<Nilai> daftarNilai; // Grades list
 
-    // Constructor lengkap untuk saat membuat atau mengedit data siswa secara penuh
-    public Siswa(int id, String nis, String nama, String alamat, String jenisKelamin, String agama, LocalDate tanggalLahir, String namaOrangTua, String teleponOrangTua) {
-        this.id = new SimpleIntegerProperty(id);
-        this.nis = new SimpleStringProperty(nis);
-        this.nama = new SimpleStringProperty(nama);
-        this.alamat = new SimpleStringProperty(alamat);
-        this.jenisKelamin = new SimpleStringProperty(jenisKelamin);
-        this.agama = new SimpleStringProperty(agama);
-        this.tanggalLahir = tanggalLahir;
-        this.namaOrangTua = new SimpleStringProperty(namaOrangTua);
-        this.teleponOrangTua = new SimpleStringProperty(teleponOrangTua);
+    // Constructor following STUDENT schema
+    public Siswa(int studentId, String studentName, String studentAddress, String studentGender, 
+                 String studentParentsPhoneNumber, String studentReligion, LocalDate studentBirthDate) {
+        this.studentId = new SimpleIntegerProperty(studentId);
+        this.studentName = new SimpleStringProperty(studentName != null ? studentName : "");
+        this.studentAddress = new SimpleStringProperty(studentAddress != null ? studentAddress : "");
+        this.studentGender = new SimpleStringProperty(studentGender != null ? studentGender : "");
+        this.studentParentsPhoneNumber = new SimpleStringProperty(studentParentsPhoneNumber != null ? studentParentsPhoneNumber : "");
+        this.studentReligion = new SimpleStringProperty(studentReligion != null ? studentReligion : "");
+        this.studentBirthDate = studentBirthDate;
+        
+        // Compatibility fields
+        this.nis = new SimpleStringProperty("");
         this.kelasSaatIniNama = new SimpleStringProperty("");
-        this.status = new SimpleStringProperty("Aktif"); // Default status
+        this.status = new SimpleStringProperty("ACTIVE"); // Default status
         this.daftarNilai = new ArrayList<>();
     }
 
-    // Constructor simpel untuk menampilkan di tabel (seperti di Kelola Kelulusan)
+    // Constructor with legacy fields for backward compatibility
+    public Siswa(int id, String nis, String nama, String alamat, String jenisKelamin, String agama, 
+                 LocalDate tanggalLahir, String namaOrangTua, String teleponOrangTua) {
+        this.studentId = new SimpleIntegerProperty(id);
+        this.studentName = new SimpleStringProperty(nama != null ? nama : "");
+        this.studentAddress = new SimpleStringProperty(alamat != null ? alamat : "");
+        this.studentGender = new SimpleStringProperty(jenisKelamin != null ? jenisKelamin : "");
+        this.studentParentsPhoneNumber = new SimpleStringProperty(teleponOrangTua != null ? teleponOrangTua : "");
+        this.studentReligion = new SimpleStringProperty(agama != null ? agama : "");
+        this.studentBirthDate = tanggalLahir;
+        
+        // Legacy fields
+        this.nis = new SimpleStringProperty(nis != null ? nis : "");
+        this.kelasSaatIniNama = new SimpleStringProperty("");
+        this.status = new SimpleStringProperty("ACTIVE");
+        this.daftarNilai = new ArrayList<>();
+    }
+
+    // Constructor simpel untuk menampilkan di tabel
     public Siswa(int id, String nis, String nama) {
-        this.id = new SimpleIntegerProperty(id);
-        this.nis = new SimpleStringProperty(nis);
-        this.nama = new SimpleStringProperty(nama);
-        // Atribut lain diisi nilai default agar tidak error
-        this.alamat = new SimpleStringProperty(null);
-        this.jenisKelamin = new SimpleStringProperty(null);
-        this.agama = new SimpleStringProperty(null);
-        this.tanggalLahir = null;
-        this.namaOrangTua = new SimpleStringProperty(null);
-        this.teleponOrangTua = new SimpleStringProperty(null);
+        this.studentId = new SimpleIntegerProperty(id);
+        this.studentName = new SimpleStringProperty(nama != null ? nama : "");
+        this.studentAddress = new SimpleStringProperty("");
+        this.studentGender = new SimpleStringProperty("");
+        this.studentParentsPhoneNumber = new SimpleStringProperty("");
+        this.studentReligion = new SimpleStringProperty("");
+        this.studentBirthDate = null;
+        
+        this.nis = new SimpleStringProperty(nis != null ? nis : "");
         this.kelasSaatIniNama = new SimpleStringProperty("");
-        this.status = new SimpleStringProperty("Aktif");
+        this.status = new SimpleStringProperty("ACTIVE");
         this.daftarNilai = new ArrayList<>();
     }
 
+    // Primary getters (following schema)
+    public int getStudentId() { return studentId.get(); }
+    public String getStudentName() { return studentName.get(); }
+    public String getStudentAddress() { return studentAddress.get(); }
+    public String getStudentGender() { return studentGender.get(); }
+    public String getStudentParentsPhoneNumber() { return studentParentsPhoneNumber.get(); }
+    public String getStudentReligion() { return studentReligion.get(); }
+    public LocalDate getStudentBirthDate() { return studentBirthDate; }
 
-    // --- Getters ---
-    public int getId() { return id.get(); }
+    // Legacy getters for compatibility
+    public int getId() { return studentId.get(); }
     public String getNis() { return nis.get(); }
-    public String getNama() { return nama.get(); }
-    public String getAlamat() { return alamat.get(); }
-    public String getJenisKelamin() { return jenisKelamin.get(); }
-    public String getAgama() { return agama.get(); }
-    public LocalDate getTanggalLahir() { return tanggalLahir; }
-    public String getNamaOrangTua() { return namaOrangTua.get(); }
-    public String getTeleponOrangTua() { return teleponOrangTua.get(); }
+    public String getNama() { return studentName.get(); }
+    public String getAlamat() { return studentAddress.get(); }
+    public String getJenisKelamin() { return studentGender.get(); }
+    public String getAgama() { return studentReligion.get(); }
+    public LocalDate getTanggalLahir() { return studentBirthDate; }
+    public String getNamaOrangTua() { 
+        // In new schema, we only have phone number, not name
+        return ""; // Return empty for compatibility
+    }
+    public String getTeleponOrangTua() { return studentParentsPhoneNumber.get(); }
     public String getKelasSaatIniNama() { return kelasSaatIniNama.get(); }
     public String getStatus() { return status.get(); }
 
+    // Primary setters
+    public void setStudentName(String studentName) { this.studentName.set(studentName); }
+    public void setStudentAddress(String studentAddress) { this.studentAddress.set(studentAddress); }
+    public void setStudentGender(String studentGender) { this.studentGender.set(studentGender); }
+    public void setStudentParentsPhoneNumber(String studentParentsPhoneNumber) { this.studentParentsPhoneNumber.set(studentParentsPhoneNumber); }
+    public void setStudentReligion(String studentReligion) { this.studentReligion.set(studentReligion); }
+    public void setStudentBirthDate(LocalDate studentBirthDate) { this.studentBirthDate = studentBirthDate; }
 
-    // --- Setters ---
+    // Legacy setters for compatibility
     public void setNis(String value) { nis.set(value); }
-    public void setNama(String value) { nama.set(value); }
-    public void setAlamat(String value) { alamat.set(value); }
-    public void setJenisKelamin(String value) { jenisKelamin.set(value); }
-    public void setAgama(String value) { agama.set(value); }
-    public void setTanggalLahir(LocalDate value) { this.tanggalLahir = value; }
-    public void setNamaOrangTua(String value) { namaOrangTua.set(value); }
-    public void setTeleponOrangTua(String value) { teleponOrangTua.set(value); }
+    public void setNama(String value) { studentName.set(value); }
+    public void setAlamat(String value) { studentAddress.set(value); }
+    public void setJenisKelamin(String value) { studentGender.set(value); }
+    public void setAgama(String value) { studentReligion.set(value); }
+    public void setTanggalLahir(LocalDate value) { this.studentBirthDate = value; }
+    public void setNamaOrangTua(String value) { 
+        // In new schema, we don't store parent name, only phone
+        // This is kept for compatibility but does nothing
+    }
+    public void setTeleponOrangTua(String value) { studentParentsPhoneNumber.set(value); }
     public void setKelasSaatIniNama(String value) { kelasSaatIniNama.set(value); }
     public void setStatus(String value) { status.set(value); }
 
+    // Primary property getters (for TableView binding)
+    public IntegerProperty studentIdProperty() { return studentId; }
+    public StringProperty studentNameProperty() { return studentName; }
+    public StringProperty studentAddressProperty() { return studentAddress; }
+    public StringProperty studentGenderProperty() { return studentGender; }
+    public StringProperty studentParentsPhoneNumberProperty() { return studentParentsPhoneNumber; }
+    public StringProperty studentReligionProperty() { return studentReligion; }
 
-    // --- Property Getters (Sangat Penting untuk TableView) ---
-    public IntegerProperty idProperty() { return id; }
+    // Legacy property getters for compatibility
+    public IntegerProperty idProperty() { return studentId; }
     public StringProperty nisProperty() { return nis; }
-    public StringProperty namaProperty() { return nama; }
+    public StringProperty namaProperty() { return studentName; }
     public StringProperty kelasSaatIniNamaProperty() { return kelasSaatIniNama; }
-    public StringProperty statusProperty() { return status; } // <--- METHOD PENTING YANG HILANG
+    public StringProperty statusProperty() { return status; }
 
-    @Override public String toString() { return getNama(); }
+    @Override 
+    public String toString() { 
+        return getStudentName(); 
+    }
+    
+    // Nilai/Grade management methods
     public List<Nilai> getDaftarNilai() { return daftarNilai; }
+    
     public void setDaftarNilai(List<Nilai> daftarNilai) {
         this.daftarNilai.clear();
         this.daftarNilai.addAll(daftarNilai);
