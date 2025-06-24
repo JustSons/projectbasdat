@@ -128,11 +128,11 @@
                                     <Font size="14.0" />
                                  </font>
                               </Button>
-                              <Button text="Input Nilai" onAction="#handleInputNilai" styleClass="menu-button-large" prefWidth="150" prefHeight="60" GridPane.columnIndex="1" GridPane.rowIndex="0">
-                                 <font>
-                                    <Font size="14.0" />
-                                 </font>
-                              </Button>
+<!--                              <Button text="Input Nilai" onAction="#handleInputNilai" styleClass="menu-button-large" prefWidth="150" prefHeight="60" GridPane.columnIndex="1" GridPane.rowIndex="0">-->
+<!--                                 <font>-->
+<!--                                    <Font size="14.0" />-->
+<!--                                 </font>-->
+<!--                              </Button>-->
                               <Button text="Kelola Jadwal" onAction="#handleKelolaJadwal" styleClass="menu-button-large" prefWidth="150" prefHeight="60" GridPane.columnIndex="2" GridPane.rowIndex="0">
                                  <font>
                                     <Font size="14.0" />

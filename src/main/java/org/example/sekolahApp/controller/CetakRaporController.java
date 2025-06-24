@@ -3,304 +3,320 @@ package org.example.sekolahApp.controller;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
-import javafx.fxml.Initializable;
-import javafx.scene.control.*;
-import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.Label;
+import javafx.scene.control.TextArea;
 import javafx.stage.FileChooser;
-import javafx.stage.Stage;
+import javafx.util.StringConverter;
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.pdmodel.PDPage;
+import org.apache.pdfbox.pdmodel.PDPageContentStream;
+import org.apache.pdfbox.pdmodel.common.PDRectangle;
+import org.apache.pdfbox.pdmodel.font.PDType1Font;
+import org.apache.pdfbox.pdmodel.font.Standard14Fonts;
 import org.example.sekolahApp.db.DatabaseConnection;
 import org.example.sekolahApp.util.SceneManager;
 import org.example.sekolahApp.util.UserSession;
 
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.net.URL;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.ResourceBundle;
+import java.util.Map;
+import java.util.stream.Collectors;
 
-public class CetakRaporController implements Initializable {
+public class CetakRaporController {
 
-    @FXML private ComboBox<KelasView> kelasComboBox;
-    @FXML private ComboBox<SiswaView> siswaComboBox;
-    @FXML private TableView<NilaiRaporView> nilaiTableView;
-    @FXML private TableColumn<NilaiRaporView, String> mapelColumn;
-    @FXML private TableColumn<NilaiRaporView, String> uts1Column;
-    @FXML private TableColumn<NilaiRaporView, String> uas1Column;
-    @FXML private TableColumn<NilaiRaporView, String> uts2Column;
-    @FXML private TableColumn<NilaiRaporView, String> uas2Column;
-    @FXML private Label siswaInfoLabel;
+    @FXML private Label infoKelasLabel;
+    @FXML private ComboBox<Siswa> siswaComboBox;
+    @FXML private TextArea raporTextArea;
     @FXML private Button cetakButton;
 
-    private final ObservableList<KelasView> kelasList = FXCollections.observableArrayList();
-    private final ObservableList<SiswaView> siswaList = FXCollections.observableArrayList();
-    private final ObservableList<NilaiRaporView> nilaiList = FXCollections.observableArrayList();
+    private int kelasId = -1;
+    private String namaKelas;
+    private String tahunAjaran;
 
-    @Override
-    public void initialize(URL url, ResourceBundle rb) {
-        // Cek apakah user adalah wali kelas
-        if (!UserSession.getInstance().isLoggedIn() || !UserSession.getInstance().isWaliKelas()) {
-            showAlert(Alert.AlertType.ERROR, "Akses Ditolak", "Halaman ini hanya untuk wali kelas.");
-            return;
+    private final ObservableList<Siswa> siswaList = FXCollections.observableArrayList();
+
+    @FXML
+    public void initialize() {
+        configureSiswaComboBox();
+        loadDataWaliKelas();
+        if (kelasId != -1) {
+            loadSiswaDiKelas();
+        } else {
+            raporTextArea.setText("Gagal memuat data. Anda mungkin tidak ditugaskan sebagai wali kelas.");
+            siswaComboBox.setDisable(true);
+            cetakButton.setDisable(true);
         }
-
-        setupTableColumns();
-        loadKelasList();
-        setupEventHandlers();
     }
 
-    private void setupTableColumns() {
-        mapelColumn.setCellValueFactory(new PropertyValueFactory<>("namaMapel"));
-        uts1Column.setCellValueFactory(new PropertyValueFactory<>("uts1"));
-        uas1Column.setCellValueFactory(new PropertyValueFactory<>("uas1"));
-        uts2Column.setCellValueFactory(new PropertyValueFactory<>("uts2"));
-        uas2Column.setCellValueFactory(new PropertyValueFactory<>("uas2"));
-
-        nilaiTableView.setItems(nilaiList);
-    }
-
-    private void setupEventHandlers() {
-        kelasComboBox.valueProperty().addListener((obs, oldVal, newVal) -> {
-            if (newVal != null) {
-                loadSiswaByKelas(newVal.getKelasId());
-            }
-        });
-
-        siswaComboBox.valueProperty().addListener((obs, oldVal, newVal) -> {
-            if (newVal != null) {
-                loadNilaiSiswa(newVal.getSiswaId());
-                updateSiswaInfo(newVal);
-            }
-        });
-    }
-
-    private void loadKelasList() {
-        kelasList.clear();
-        
-        // Hanya load kelas yang diwali oleh user yang login
-        int waliKelasId = UserSession.getInstance().getReferenceId();
-        
+    private void loadDataWaliKelas() {
+        int staffId = UserSession.getInstance().getReferenceId();
         String sql = "SELECT k.kelas_id, k.nama_kelas, ta.tahun_ajaran " +
-                     "FROM kelas k " +
-                     "JOIN tahun_ajaran ta ON k.tahun_ajaran_id = ta.tahun_ajaran_id " +
-                     "WHERE k.wali_kelas_id = ? " +
-                     "ORDER BY ta.tahun_ajaran DESC";
-
+                "FROM kelas k " +
+                "JOIN tahun_ajaran ta ON k.tahun_ajaran_id = ta.tahun_ajaran_id " +
+                "WHERE k.wali_kelas_id = ?";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
-            pstmt.setInt(1, waliKelasId);
+            pstmt.setInt(1, staffId);
             ResultSet rs = pstmt.executeQuery();
-
-            while (rs.next()) {
-                kelasList.add(new KelasView(
-                    rs.getInt("kelas_id"),
-                    rs.getString("nama_kelas") + " (" + rs.getString("tahun_ajaran") + ")"
-                ));
+            if (rs.next()) {
+                this.kelasId = rs.getInt("kelas_id");
+                this.namaKelas = rs.getString("nama_kelas");
+                this.tahunAjaran = rs.getString("tahun_ajaran");
+                infoKelasLabel.setText("Kelas: " + namaKelas + " (" + tahunAjaran + ")");
             }
-            
-            kelasComboBox.setItems(kelasList);
-            
-            if (kelasList.isEmpty()) {
-                showAlert(Alert.AlertType.INFORMATION, "Info", "Anda belum menjadi wali kelas dari kelas manapun.");
-            }
-
         } catch (SQLException e) {
             e.printStackTrace();
-            showAlert(Alert.AlertType.ERROR, "Database Error", "Gagal memuat daftar kelas.");
+            showAlert(Alert.AlertType.ERROR, "Database Error", "Gagal memuat info kelas.");
         }
     }
 
-    private void loadSiswaByKelas(int kelasId) {
+    private void loadSiswaDiKelas() {
         siswaList.clear();
-        siswaComboBox.setValue(null);
-        nilaiList.clear();
-        siswaInfoLabel.setText("");
-
-        String sql = "SELECT s.siswa_id, s.nama_siswa, s.nis " +
-                     "FROM siswa s " +
-                     "JOIN siswa_kelas sk ON s.siswa_id = sk.siswa_id " +
-                     "WHERE sk.kelas_id = ? " +
-                     "ORDER BY s.nama_siswa";
-
+        String sql = "SELECT s.siswa_id, s.nis, s.nama_siswa FROM siswa s " +
+                "JOIN siswa_kelas sk ON s.siswa_id = sk.siswa_id " +
+                "WHERE sk.kelas_id = ? ORDER BY s.nama_siswa";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
-
             pstmt.setInt(1, kelasId);
             ResultSet rs = pstmt.executeQuery();
-
             while (rs.next()) {
-                siswaList.add(new SiswaView(
-                    rs.getInt("siswa_id"),
-                    rs.getString("nama_siswa") + " - " + rs.getString("nis"),
-                    rs.getString("nama_siswa"),
-                    rs.getString("nis")
-                ));
+                siswaList.add(new Siswa(rs.getInt("siswa_id"), rs.getString("nis"), rs.getString("nama_siswa")));
             }
-            
             siswaComboBox.setItems(siswaList);
-
         } catch (SQLException e) {
             e.printStackTrace();
             showAlert(Alert.AlertType.ERROR, "Database Error", "Gagal memuat daftar siswa.");
         }
     }
 
-    private void loadNilaiSiswa(int siswaId) {
-        nilaiList.clear();
+    private void configureSiswaComboBox() {
+        siswaComboBox.setConverter(new StringConverter<>() {
+            @Override
+            public String toString(Siswa siswa) {
+                return siswa == null ? null : siswa.getNama() + " (" + siswa.getNis() + ")";
+            }
 
+            @Override
+            public Siswa fromString(String string) {
+                return null;
+            }
+        });
+    }
+
+    @FXML
+    private void handlePilihSiswa() {
+        Siswa selectedSiswa = siswaComboBox.getValue();
+        if (selectedSiswa == null) {
+            raporTextArea.clear();
+            return;
+        }
+        // Tampilkan preview di TextArea
+        raporTextArea.setText(generateRaporText(selectedSiswa));
+    }
+
+    private String generateRaporText(Siswa siswa) {
+        StringBuilder sb = new StringBuilder();
+        List<NilaiRapor> daftarNilai = getNilaiSiswa(siswa.getId());
+
+        sb.append("===============================================================\n");
+        sb.append("                         RAPOR SISWA\n");
+        sb.append("===============================================================\n\n");
+        sb.append(String.format("Nama Siswa    : %s\n", siswa.getNama()));
+        sb.append(String.format("NIS           : %s\n", siswa.getNis()));
+        sb.append(String.format("Kelas         : %s\n", this.namaKelas));
+        sb.append(String.format("Tahun Ajaran  : %s\n", this.tahunAjaran));
+        sb.append("\n---------------------------------------------------------------\n");
+        sb.append(String.format("| %-30s | %-5s | %-5s | %-5s | %-5s |\n", "Mata Pelajaran", "UTS 1", "UAS 1", "UTS 2", "UAS 2"));
+        sb.append("---------------------------------------------------------------\n");
+
+        Map<String, List<NilaiRapor>> nilaiByMapel = daftarNilai.stream()
+                .collect(Collectors.groupingBy(NilaiRapor::getNamaMapel));
+
+        for (String namaMapel : nilaiByMapel.keySet()) {
+            List<NilaiRapor> nilaiMapel = nilaiByMapel.get(namaMapel);
+            String uts1 = nilaiMapel.stream().filter(n -> "UTS1".equals(n.getJenisUjian())).findFirst().map(n -> String.valueOf(n.getNilai())).orElse("-");
+            String uas1 = nilaiMapel.stream().filter(n -> "UAS1".equals(n.getJenisUjian())).findFirst().map(n -> String.valueOf(n.getNilai())).orElse("-");
+            String uts2 = nilaiMapel.stream().filter(n -> "UTS2".equals(n.getJenisUjian())).findFirst().map(n -> String.valueOf(n.getNilai())).orElse("-");
+            String uas2 = nilaiMapel.stream().filter(n -> "UAS2".equals(n.getJenisUjian())).findFirst().map(n -> String.valueOf(n.getNilai())).orElse("-");
+
+            sb.append(String.format("| %-30s | %-5s | %-5s | %-5s | %-5s |\n", namaMapel, uts1, uas1, uts2, uas2));
+        }
+        sb.append("---------------------------------------------------------------\n\n");
+        sb.append("Catatan Wali Kelas:\n");
+        sb.append("...............................................................\n");
+        sb.append("...............................................................\n\n\n");
+        sb.append("Mengetahui,                                 Orang Tua/Wali,\n");
+        sb.append("Wali Kelas,\n\n\n\n");
+        sb.append("____________________                        ____________________\n");
+
+        return sb.toString();
+    }
+
+    @FXML
+    private void handleCetakPDF() {
+        Siswa selectedSiswa = siswaComboBox.getValue();
+        if (selectedSiswa == null) {
+            showAlert(Alert.AlertType.WARNING, "Peringatan", "Pilih seorang siswa terlebih dahulu.");
+            return;
+        }
+
+        // 1. Buka File Chooser untuk memilih lokasi penyimpanan
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Simpan Rapor PDF");
+        fileChooser.setInitialFileName("Rapor_" + selectedSiswa.getNama().replace(" ", "_") + ".pdf");
+        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("PDF Files", "*.pdf"));
+        File file = fileChooser.showSaveDialog(raporTextArea.getScene().getWindow());
+
+        if (file == null) {
+            return; // Pengguna membatalkan dialog
+        }
+
+        // 2. Buat Dokumen PDF
+        try (PDDocument document = new PDDocument()) {
+            PDPage page = new PDPage(PDRectangle.A4);
+            document.addPage(page);
+
+            PDPageContentStream contentStream = new PDPageContentStream(document, page);
+
+            // 3. Tulis konten ke PDF
+            drawRaporContent(contentStream, selectedSiswa);
+
+            contentStream.close();
+            document.save(file);
+
+            showAlert(Alert.AlertType.INFORMATION, "Sukses", "Rapor berhasil disimpan sebagai PDF di:\n" + file.getAbsolutePath());
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            showAlert(Alert.AlertType.ERROR, "Error", "Gagal membuat file PDF.");
+        }
+    }
+
+    private void drawRaporContent(PDPageContentStream contentStream, Siswa siswa) throws IOException {
+        final float margin = 50;
+        final float yStart = PDRectangle.A4.getUpperRightY() - margin;
+        final float width = PDRectangle.A4.getWidth() - 2 * margin;
+        float currentY = yStart;
+        final float lineHeight = 15;
+
+        // Ambil data nilai
+        List<NilaiRapor> daftarNilai = getNilaiSiswa(siswa.getId());
+        Map<String, List<NilaiRapor>> nilaiByMapel = daftarNilai.stream()
+                .collect(Collectors.groupingBy(NilaiRapor::getNamaMapel));
+
+        // Tulis Judul
+        contentStream.beginText();
+        contentStream.setFont(new PDType1Font(Standard14Fonts.FontName.HELVETICA_BOLD), 16);
+        contentStream.newLineAtOffset((width / 2) - 50, currentY);
+        contentStream.showText("RAPOR SISWA");
+        contentStream.endText();
+        currentY -= lineHeight * 2;
+
+        // Tulis Biodata
+        contentStream.beginText();
+        contentStream.setFont(new PDType1Font(Standard14Fonts.FontName.HELVETICA), 11);
+        contentStream.newLineAtOffset(margin, currentY);
+        contentStream.showText("Nama Siswa    : " + siswa.getNama());
+        currentY -= lineHeight;
+        contentStream.newLineAtOffset(0, -lineHeight);
+        contentStream.showText("NIS           : " + siswa.getNis());
+        currentY -= lineHeight;
+        contentStream.newLineAtOffset(0, -lineHeight);
+        contentStream.showText("Kelas         : " + this.namaKelas);
+        currentY -= lineHeight;
+        contentStream.newLineAtOffset(0, -lineHeight);
+        contentStream.showText("Tahun Ajaran  : " + this.tahunAjaran);
+        contentStream.endText();
+        currentY -= lineHeight * 2;
+
+        // Tulis Header Tabel Nilai (gunakan font monospaced agar lurus)
+        contentStream.beginText();
+        contentStream.setFont(new PDType1Font(Standard14Fonts.FontName.COURIER), 10);
+        contentStream.newLineAtOffset(margin, currentY);
+        contentStream.showText("-----------------------------------------------------------------");
+        currentY -= lineHeight;
+        contentStream.newLineAtOffset(0, -lineHeight);
+        contentStream.showText(String.format("| %-30s | %-5s | %-5s | %-5s | %-5s |", "Mata Pelajaran", "UTS 1", "UAS 1", "UTS 2", "UAS 2"));
+        currentY -= lineHeight;
+        contentStream.newLineAtOffset(0, -lineHeight);
+        contentStream.showText("-----------------------------------------------------------------");
+        currentY -= lineHeight;
+
+        // Tulis isi tabel
+        for (String namaMapel : nilaiByMapel.keySet()) {
+            List<NilaiRapor> nilaiMapel = nilaiByMapel.get(namaMapel);
+            String uts1 = nilaiMapel.stream().filter(n -> "UTS1".equals(n.getJenisUjian())).findFirst().map(n -> String.valueOf(n.getNilai())).orElse("-");
+            String uas1 = nilaiMapel.stream().filter(n -> "UAS1".equals(n.getJenisUjian())).findFirst().map(n -> String.valueOf(n.getNilai())).orElse("-");
+            String uts2 = nilaiMapel.stream().filter(n -> "UTS2".equals(n.getJenisUjian())).findFirst().map(n -> String.valueOf(n.getNilai())).orElse("-");
+            String uas2 = nilaiMapel.stream().filter(n -> "UAS2".equals(n.getJenisUjian())).findFirst().map(n -> String.valueOf(n.getNilai())).orElse("-");
+
+            contentStream.newLineAtOffset(0, -lineHeight);
+            contentStream.showText(String.format("| %-30s | %-5s | %-5s | %-5s | %-5s |", namaMapel, uts1, uas1, uts2, uas2));
+            currentY -= lineHeight;
+        }
+
+        contentStream.newLineAtOffset(0, -lineHeight);
+        contentStream.showText("-----------------------------------------------------------------");
+        contentStream.endText();
+        currentY -= lineHeight * 2;
+
+        // Tulis Catatan dan Tanda Tangan
+        contentStream.beginText();
+        contentStream.setFont(new PDType1Font(Standard14Fonts.FontName.HELVETICA), 11);
+        contentStream.newLineAtOffset(margin, currentY);
+        contentStream.showText("Catatan Wali Kelas:");
+        currentY -= lineHeight * 4; // Beri spasi untuk catatan
+        contentStream.newLineAtOffset(0, -lineHeight * 4);
+        contentStream.showText("Mengetahui,");
+        contentStream.newLineAtOffset(width/2, 0); // Pindah ke kanan
+        contentStream.showText("Orang Tua/Wali,");
+        currentY -= lineHeight;
+        contentStream.newLineAtOffset(-(width/2), -lineHeight); // Kembali ke kiri
+        contentStream.showText("Wali Kelas,");
+        currentY -= lineHeight * 4;
+        contentStream.newLineAtOffset(0, -lineHeight*4);
+        contentStream.showText("____________________");
+        contentStream.newLineAtOffset(width/2, 0);
+        contentStream.showText("____________________");
+        contentStream.endText();
+    }
+
+    private List<NilaiRapor> getNilaiSiswa(int siswaId) {
+        List<NilaiRapor> hasil = new ArrayList<>();
         String sql = "SELECT mp.nama_mapel, n.jenis_ujian, n.nilai " +
-                     "FROM nilai n " +
-                     "JOIN mata_pelajaran mp ON n.mapel_id = mp.mapel_id " +
-                     "JOIN siswa_kelas sk ON n.siswa_kelas_id = sk.siswa_kelas_id " +
-                     "WHERE sk.siswa_id = ? " +
-                     "ORDER BY mp.nama_mapel";
+                "FROM nilai n " +
+                "JOIN siswa_kelas sk ON n.siswa_kelas_id = sk.siswa_kelas_id " +
+                "JOIN mata_pelajaran mp ON n.mapel_id = mp.mapel_id " +
+                "WHERE sk.siswa_id = ? AND sk.kelas_id = ?";
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
-
             pstmt.setInt(1, siswaId);
+            pstmt.setInt(2, this.kelasId);
             ResultSet rs = pstmt.executeQuery();
-
-            // Group nilai by mata pelajaran
-            List<String> mapelList = new ArrayList<>();
-            List<NilaiRaporView> tempNilai = new ArrayList<>();
-
-            while (rs.next()) {
-                String namaMapel = rs.getString("nama_mapel");
-                String jenisUjian = rs.getString("jenis_ujian");
-                int nilai = rs.getInt("nilai");
-
-                // Cari atau buat entry untuk mata pelajaran ini
-                NilaiRaporView nilaiRapor = tempNilai.stream()
-                    .filter(n -> n.getNamaMapel().equals(namaMapel))
-                    .findFirst()
-                    .orElse(null);
-
-                if (nilaiRapor == null) {
-                    nilaiRapor = new NilaiRaporView(namaMapel);
-                    tempNilai.add(nilaiRapor);
-                }
-
-                // Set nilai berdasarkan jenis ujian
-                switch (jenisUjian.toUpperCase()) {
-                    case "UTS1":
-                        nilaiRapor.setUts1(String.valueOf(nilai));
-                        break;
-                    case "UAS1":
-                        nilaiRapor.setUas1(String.valueOf(nilai));
-                        break;
-                    case "UTS2":
-                        nilaiRapor.setUts2(String.valueOf(nilai));
-                        break;
-                    case "UAS2":
-                        nilaiRapor.setUas2(String.valueOf(nilai));
-                        break;
-                }
+            while(rs.next()) {
+                hasil.add(new NilaiRapor(rs.getString("nama_mapel"), rs.getString("jenis_ujian"), rs.getInt("nilai")));
             }
-
-            nilaiList.addAll(tempNilai);
-            cetakButton.setDisable(nilaiList.isEmpty());
-
         } catch (SQLException e) {
             e.printStackTrace();
-            showAlert(Alert.AlertType.ERROR, "Database Error", "Gagal memuat nilai siswa.");
         }
-    }
-
-    private void updateSiswaInfo(SiswaView siswa) {
-        siswaInfoLabel.setText("Rapor untuk: " + siswa.getNamaSiswa() + " (NIS: " + siswa.getNis() + ")");
+        return hasil;
     }
 
     @FXML
-    private void handleCetakRapor() {
-        SiswaView selectedSiswa = siswaComboBox.getValue();
-        KelasView selectedKelas = kelasComboBox.getValue();
-
-        if (selectedSiswa == null || selectedKelas == null) {
-            showAlert(Alert.AlertType.WARNING, "Pilihan Tidak Lengkap", "Pilih kelas dan siswa terlebih dahulu.");
-            return;
-        }
-
-        if (nilaiList.isEmpty()) {
-            showAlert(Alert.AlertType.WARNING, "Tidak Ada Data", "Tidak ada nilai untuk dicetak.");
-            return;
-        }
-
-        // File chooser untuk save rapor
-        FileChooser fileChooser = new FileChooser();
-        fileChooser.setTitle("Simpan Rapor");
-        fileChooser.getExtensionFilters().add(
-            new FileChooser.ExtensionFilter("Text Files", "*.txt")
-        );
-        fileChooser.setInitialFileName("Rapor_" + selectedSiswa.getNis() + ".txt");
-
-        Stage stage = (Stage) cetakButton.getScene().getWindow();
-        File file = fileChooser.showSaveDialog(stage);
-
-        if (file != null) {
-            generateRapor(file, selectedSiswa, selectedKelas);
-        }
-    }
-
-    private void generateRapor(File file, SiswaView siswa, KelasView kelas) {
-        try (FileWriter writer = new FileWriter(file)) {
-            // Header rapor
-            writer.write("==========================================\n");
-            writer.write("           RAPOR SISWA\n");
-            writer.write("==========================================\n\n");
-            
-            writer.write("Nama Siswa  : " + siswa.getNamaSiswa() + "\n");
-            writer.write("NIS         : " + siswa.getNis() + "\n");
-            writer.write("Kelas       : " + kelas.getNamaKelas() + "\n");
-            writer.write("Tanggal     : " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")) + "\n\n");
-            
-            writer.write("==========================================\n");
-            writer.write("              NILAI\n");
-            writer.write("==========================================\n\n");
-            
-            // Table header
-            writer.write(String.format("%-25s %-8s %-8s %-8s %-8s\n", 
-                "MATA PELAJARAN", "UTS1", "UAS1", "UTS2", "UAS2"));
-            writer.write("----------------------------------------------------------\n");
-            
-            // Table content
-            for (NilaiRaporView nilai : nilaiList) {
-                writer.write(String.format("%-25s %-8s %-8s %-8s %-8s\n",
-                    nilai.getNamaMapel(),
-                    nilai.getUts1(),
-                    nilai.getUas1(),
-                    nilai.getUts2(),
-                    nilai.getUas2()
-                ));
-            }
-            
-            writer.write("\n\n");
-            writer.write("Catatan: Rapor ini tidak menghitung nilai akhir,\n");
-            writer.write("hanya menampilkan nilai per ujian.\n\n");
-            
-            writer.write("Wali Kelas,\n\n\n");
-            writer.write("_____________________\n");
-            
-            showAlert(Alert.AlertType.INFORMATION, "Sukses", "Rapor berhasil disimpan ke: " + file.getAbsolutePath());
-            
-        } catch (IOException e) {
-            e.printStackTrace();
-            showAlert(Alert.AlertType.ERROR, "Error", "Gagal menyimpan rapor: " + e.getMessage());
-        }
-    }
-
-    @FXML
-    private void handleBack() {
+    private void handleKembali() {
         try {
-            SceneManager.getInstance().loadScene("/org/example/sekolahApp/view/GuruDashboard.fxml");
+            SceneManager.getInstance().loadScene("/org/example/sekolahApp/view/WaliKelasDashboard.fxml");
         } catch (IOException e) {
             e.printStackTrace();
             showAlert(Alert.AlertType.ERROR, "Error", "Gagal kembali ke dashboard.");
@@ -315,64 +331,34 @@ public class CetakRaporController implements Initializable {
         alert.showAndWait();
     }
 
-    // Inner classes untuk view
-    public static class KelasView {
-        private final int kelasId;
-        private final String namaKelas;
-
-        public KelasView(int kelasId, String namaKelas) {
-            this.kelasId = kelasId;
-            this.namaKelas = namaKelas;
-        }
-
-        public int getKelasId() { return kelasId; }
-        public String getNamaKelas() { return namaKelas; }
-
-        @Override
-        public String toString() { return namaKelas; }
-    }
-
-    public static class SiswaView {
-        private final int siswaId;
-        private final String displayName;
-        private final String namaSiswa;
+    // --- Inner classes untuk menampung data ---
+    private static class Siswa {
+        private final int id;
         private final String nis;
+        private final String nama;
 
-        public SiswaView(int siswaId, String displayName, String namaSiswa, String nis) {
-            this.siswaId = siswaId;
-            this.displayName = displayName;
-            this.namaSiswa = namaSiswa;
+        public Siswa(int id, String nis, String nama) {
+            this.id = id;
             this.nis = nis;
+            this.nama = nama;
         }
-
-        public int getSiswaId() { return siswaId; }
-        public String getNamaSiswa() { return namaSiswa; }
+        public int getId() { return id; }
         public String getNis() { return nis; }
-
-        @Override
-        public String toString() { return displayName; }
+        public String getNama() { return nama; }
     }
 
-    public static class NilaiRaporView {
+    private static class NilaiRapor {
         private final String namaMapel;
-        private String uts1 = "-";
-        private String uas1 = "-";
-        private String uts2 = "-";
-        private String uas2 = "-";
+        private final String jenisUjian;
+        private final int nilai;
 
-        public NilaiRaporView(String namaMapel) {
+        public NilaiRapor(String namaMapel, String jenisUjian, int nilai) {
             this.namaMapel = namaMapel;
+            this.jenisUjian = jenisUjian;
+            this.nilai = nilai;
         }
-
         public String getNamaMapel() { return namaMapel; }
-        public String getUts1() { return uts1; }
-        public String getUas1() { return uas1; }
-        public String getUts2() { return uts2; }
-        public String getUas2() { return uas2; }
-
-        public void setUts1(String uts1) { this.uts1 = uts1; }
-        public void setUas1(String uas1) { this.uas1 = uas1; }
-        public void setUts2(String uts2) { this.uts2 = uts2; }
-        public void setUas2(String uas2) { this.uas2 = uas2; }
+        public String getJenisUjian() { return jenisUjian; }
+        public int getNilai() { return nilai; }
     }
 }

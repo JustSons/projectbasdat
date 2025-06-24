@@ -84,7 +84,7 @@ public class WaliKelasDashboardController implements Initializable {
                      "FROM staff s " +
                      "JOIN kelas k ON s.staff_id = k.wali_kelas_id " +
                      "JOIN tahun_ajaran ta ON k.tahun_ajaran_id = ta.tahun_ajaran_id " +
-                     "WHERE s.staff_id = ? AND ta.status = 'aktif'";
+                     "WHERE s.staff_id = ?";
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -221,15 +221,15 @@ public class WaliKelasDashboardController implements Initializable {
         }
     }
 
-    @FXML
-    private void handleInputNilai() {
-        try {
-            SceneManager.getInstance().loadScene("/org/example/sekolahApp/view/InputNilai.fxml");
-        } catch (IOException e) {
-            e.printStackTrace();
-            showAlert(Alert.AlertType.ERROR, "Error", "Gagal membuka halaman input nilai.");
-        }
-    }
+//    @FXML
+//    private void handleInputNilai() {
+//        try {
+//            SceneManager.getInstance().loadScene("/org/example/sekolahApp/view/InputNilai.fxml");
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//            showAlert(Alert.AlertType.ERROR, "Error", "Gagal membuka halaman input nilai.");
+//        }
+//    }
 
     @FXML
     private void handleKelolaJadwal() {

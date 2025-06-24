@@ -113,7 +113,7 @@ public class KelolaTahunAjaranController implements Initializable {
     }
 
     private void insertTahunAjaran() {
-        String sql = "INSERT INTO tahun_ajaran (tahun_ajaran) VALUES (?, ?)";
+        String sql = "INSERT INTO tahun_ajaran (tahun_ajaran) VALUES (?)";
         Connection conn = null;
         try {
             conn = DatabaseConnection.getConnection();

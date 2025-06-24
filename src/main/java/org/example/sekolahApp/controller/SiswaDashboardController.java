@@ -14,7 +14,9 @@ import javafx.scene.control.cell.PropertyValueFactory;
 import org.example.sekolahApp.db.DatabaseConnection;
 import org.example.sekolahApp.util.SceneManager;
 import org.example.sekolahApp.util.UserSession;
-
+// --- BARU ---
+import org.example.sekolahApp.model.Extracurricular;
+// ------------
 import java.io.IOException;
 import java.net.URL;
 import java.sql.Connection;
@@ -44,12 +46,22 @@ public class SiswaDashboardController implements Initializable {
     @FXML private TableColumn<JadwalView, String> jamColumn;
     @FXML private TableColumn<JadwalView, String> mataPelajaranColumn;
     @FXML private TableColumn<JadwalView, String> guruColumn;
+    // --- BARU: Tabel & Kolom Ekstrakurikuler ---
+    @FXML private TableView<Extracurricular> ekskulTableView;
+    @FXML private TableColumn<Extracurricular, String> ekskulNamaColumn;
+    @FXML private TableColumn<Extracurricular, String> ekskulHariColumn;
+    @FXML private TableColumn<Extracurricular, String> ekskulJamColumn;
+    @FXML private TableColumn<Extracurricular, String> ekskulTempatColumn;
+    // ---------------------------------------------
 
     // Nilai Table & Columns
     @FXML private TableView<NilaiView> nilaiTableView;
     @FXML private TableColumn<NilaiView, String> mataPelajaranNilaiColumn;
     @FXML private TableColumn<NilaiView, String> jenisNilaiColumn;
     @FXML private TableColumn<NilaiView, Integer> nilaiColumn;
+    // --- BARU ---
+    private final ObservableList<Extracurricular> ekskulList = FXCollections.observableArrayList();
+    // ------------
     @FXML private TableColumn<NilaiView, String> tanggalColumn;
 
     private final ObservableList<JadwalView> jadwalList = FXCollections.observableArrayList();
@@ -83,6 +95,14 @@ public class SiswaDashboardController implements Initializable {
         nilaiColumn.setCellValueFactory(new PropertyValueFactory<>("nilai"));
         tanggalColumn.setCellValueFactory(new PropertyValueFactory<>("tanggal"));
         nilaiTableView.setItems(nilaiList);
+
+        // --- BARU: Setup Kolom Tabel Ekstrakurikuler ---
+        ekskulNamaColumn.setCellValueFactory(new PropertyValueFactory<>("extracurricularName"));
+        ekskulHariColumn.setCellValueFactory(new PropertyValueFactory<>("day"));
+        ekskulJamColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getTimeFormatted()));
+        ekskulTempatColumn.setCellValueFactory(new PropertyValueFactory<>("extracurricularPlace"));
+        ekskulTableView.setItems(ekskulList);
+        // ----------------------------------------------
     }
 
     private void loadAllData() {
@@ -90,6 +110,45 @@ public class SiswaDashboardController implements Initializable {
         if (this.kelasId != null) { // Hanya muat jadwal & nilai jika siswa punya kelas
             loadJadwalSiswa(this.kelasId);
             loadNilaiSiswa(this.siswaId);
+        }
+        // --- BARU ---
+        loadEkskulSiswa(this.siswaId); // Muat data ekskul terlepas dari status kelas
+        // ------------
+    }
+
+    @FXML
+    private void handlePilihEkskul() {
+        try {
+            // Kita akan membuat halaman ini di langkah berikutnya
+            SceneManager.getInstance().loadScene("/org/example/sekolahApp/view/PilihEkstrakurikuler.fxml");
+        } catch (IOException e) {
+            e.printStackTrace();
+            showAlert(Alert.AlertType.ERROR, "Error", "Gagal membuka halaman pendaftaran ekstrakurikuler.");
+        }
+    }
+
+    private void loadEkskulSiswa(int currentSiswaId) {
+        ekskulList.clear();
+        String sql = "SELECT e.extracurricular_id, e.extracurricular_name, e.day, e.time, e.extracurricular_place " +
+                "FROM extracurricular e " +
+                "JOIN extracurricular_student es ON e.extracurricular_id = es.extracurricular_id " +
+                "WHERE es.student_id = ?";
+
+        try (Connection conn = DatabaseConnection.getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, currentSiswaId);
+            ResultSet rs = pstmt.executeQuery();
+            while (rs.next()) {
+                ekskulList.add(new Extracurricular(
+                        rs.getInt("extracurricular_id"),
+                        rs.getString("extracurricular_name"),
+                        rs.getString("day"),
+                        rs.getTime("time") != null ? rs.getTime("time").toLocalTime() : null,
+                        rs.getString("extracurricular_place")
+                ));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            showAlert(Alert.AlertType.ERROR, "Database Error", "Gagal memuat data ekstrakurikuler.");
         }
     }
 
@@ -99,7 +158,7 @@ public class SiswaDashboardController implements Initializable {
                 "LEFT JOIN siswa_kelas sk ON s.siswa_id = sk.siswa_id " +
                 "LEFT JOIN kelas k ON sk.kelas_id = k.kelas_id " +
                 "LEFT JOIN tahun_ajaran ta ON k.tahun_ajaran_id = ta.tahun_ajaran_id " +
-                "WHERE s.siswa_id = ? AND (ta.status IS NULL OR ta.status = 'aktif')";
+                "WHERE s.siswa_id = ?";
 
         try (Connection conn = DatabaseConnection.getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, currentSiswaId);

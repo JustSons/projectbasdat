@@ -5,6 +5,7 @@ module org.example.sekolahApp {
     requires java.desktop;
     requires jdk.jfr;
     requires org.postgresql.jdbc;
+    requires org.apache.pdfbox;
 
     opens org.example.sekolahApp.model to javafx.base; // <--- INI SOLUSINYA!
 

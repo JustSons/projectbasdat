@@ -1,22 +1,65 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.TextArea?>
 <?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
-<?import javafx.scene.control.Button?>
 
-<AnchorPane prefHeight="768.0" prefWidth="1024.0" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.sekolahApp.controller.CetakRaporController">
+<AnchorPane prefHeight="720.0" prefWidth="1080.0" style="-fx-background-color: #f4f4f4;" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.sekolahApp.controller.CetakRaporController">
     <children>
-        <VBox alignment="CENTER" layoutX="0.0" layoutY="0.0" prefHeight="768.0" prefWidth="1024.0" spacing="20.0">
+        <VBox layoutX="35.0" layoutY="29.0" spacing="20.0" AnchorPane.bottomAnchor="30.0" AnchorPane.leftAnchor="30.0" AnchorPane.rightAnchor="30.0" AnchorPane.topAnchor="30.0">
             <children>
-                <Label text="Halaman Cetak Rapor">
+                <Label text="Halaman Cetak Rapor" textFill="#333333">
                     <font>
-                        <Font name="System Bold" size="36.0" />
+                        <Font name="System Bold" size="24.0" />
                     </font>
                 </Label>
-                <Label text="Fitur ini akan diimplementasikan selanjutnya." />
-                <Button onAction="#handleBack" text="Kembali ke Dashboard" />
+                <HBox alignment="CENTER_LEFT" spacing="15.0">
+                    <children>
+                        <Label fx:id="infoKelasLabel" text="Kelas: [Nama Kelas]" wrapText="true">
+                            <font>
+                                <Font size="14.0" />
+                            </font>
+                        </Label>
+                        <Label text="Pilih Siswa:">
+                            <font>
+                                <Font size="14.0" />
+                            </font>
+                        </Label>
+                        <ComboBox fx:id="siswaComboBox" onAction="#handlePilihSiswa" prefWidth="250.0" promptText="Pilih seorang siswa" />
+                    </children>
+                </HBox>
+                <ScrollPane fitToHeight="true" fitToWidth="true" VBox.vgrow="ALWAYS">
+                    <content>
+                        <TextArea fx:id="raporTextArea" editable="false" prefHeight="450.0" prefWidth="1000.0" style="-fx-font-family: 'Courier New'; -fx-font-size: 13;" wrapText="true" />
+                    </content>
+                </ScrollPane>
+                <HBox alignment="CENTER_RIGHT" spacing="10.0">
+                    <children>
+                        <Button fx:id="cetakButton" mnemonicParsing="false" onAction="#handleCetakPDF" style="-fx-background-color: #4CAF50; -fx-text-fill: white;" text="Simpan ke PDF">
+                            <font>
+                                <Font name="System Bold" size="13.0" />
+                            </font>
+                            <padding>
+                                <Insets bottom="8.0" left="15.0" right="15.0" top="8.0" />
+                            </padding>
+                        </Button>
+                        <Button mnemonicParsing="false" onAction="#handleKembali" style="-fx-background-color: #f44336; -fx-text-fill: white;" text="Kembali ke Dashboard">
+                            <font>
+                                <Font name="System Bold" size="13.0" />
+                            </font>
+                            <padding>
+                                <Insets bottom="8.0" left="15.0" right="15.0" top="8.0" />
+                            </padding>
+                        </Button>
+                    </children>
+                </HBox>
             </children>
         </VBox>
     </children>
