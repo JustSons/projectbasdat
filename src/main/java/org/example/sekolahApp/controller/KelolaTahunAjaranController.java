@@ -23,11 +23,9 @@ public class KelolaTahunAjaranController implements Initializable {
     @FXML private TableView<TahunAjaran> tahunAjaranTableView;
     @FXML private TableColumn<TahunAjaran, Integer> idColumn;
     @FXML private TableColumn<TahunAjaran, String> tahunAjaranColumn;
-    @FXML private TableColumn<TahunAjaran, String> statusColumn;
 
     @FXML private TextField searchField;
     @FXML private TextField tahunAjaranField;
-    @FXML private ComboBox<String> statusComboBox;
     @FXML private Button saveButton;
     @FXML private Button clearButton;
 
@@ -39,10 +37,7 @@ public class KelolaTahunAjaranController implements Initializable {
         // Setup Table Columns
         idColumn.setCellValueFactory(new PropertyValueFactory<>("tahunAjaranId"));
         tahunAjaranColumn.setCellValueFactory(new PropertyValueFactory<>("tahunAjaran"));
-        statusColumn.setCellValueFactory(new PropertyValueFactory<>("status"));
 
-        // Setup Status ComboBox
-        statusComboBox.setItems(FXCollections.observableArrayList("aktif", "tidak_aktif"));
 
         loadTahunAjaranData();
         setupSearchFilter();
@@ -53,7 +48,7 @@ public class KelolaTahunAjaranController implements Initializable {
 
     private void loadTahunAjaranData() {
         tahunAjaranList.clear();
-        String sql = "SELECT tahun_ajaran_id, tahun_ajaran, status FROM tahun_ajaran ORDER BY tahun_ajaran DESC";
+        String sql = "SELECT tahun_ajaran_id, tahun_ajaran FROM tahun_ajaran ORDER BY tahun_ajaran DESC";
         try (Connection conn = DatabaseConnection.getConnection();
              Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
@@ -61,8 +56,7 @@ public class KelolaTahunAjaranController implements Initializable {
             while (rs.next()) {
                 tahunAjaranList.add(new TahunAjaran(
                         rs.getInt("tahun_ajaran_id"),
-                        rs.getString("tahun_ajaran"),
-                        rs.getString("status")
+                        rs.getString("tahun_ajaran")
                 ));
             }
             // Penting: re-bind items to TableView after loading
@@ -84,8 +78,6 @@ public class KelolaTahunAjaranController implements Initializable {
                 String lowerCaseFilter = newValue.toLowerCase();
                 if (ta.getTahunAjaran().toLowerCase().contains(lowerCaseFilter)) {
                     return true;
-                } else if (ta.getStatus().toLowerCase().contains(lowerCaseFilter)) {
-                    return true;
                 }
                 return false;
             });
@@ -100,7 +92,6 @@ public class KelolaTahunAjaranController implements Initializable {
         selectedTahunAjaran = ta;
         if (ta != null) {
             tahunAjaranField.setText(ta.getTahunAjaran());
-            statusComboBox.setValue(ta.getStatus());
             saveButton.setText("Update");
         } else {
             clearForm();
@@ -122,13 +113,12 @@ public class KelolaTahunAjaranController implements Initializable {
     }
 
     private void insertTahunAjaran() {
-        String sql = "INSERT INTO tahun_ajaran (tahun_ajaran, status) VALUES (?, ?)";
+        String sql = "INSERT INTO tahun_ajaran (tahun_ajaran) VALUES (?, ?)";
         Connection conn = null;
         try {
             conn = DatabaseConnection.getConnection();
             try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
                 pstmt.setString(1, tahunAjaranField.getText());
-                pstmt.setString(2, statusComboBox.getValue());
                 pstmt.executeUpdate();
                 showAlert(Alert.AlertType.INFORMATION, "Sukses", "Tahun Ajaran berhasil ditambahkan.");
             }
@@ -149,14 +139,13 @@ public class KelolaTahunAjaranController implements Initializable {
     }
 
     private void updateTahunAjaran() {
-        String sql = "UPDATE tahun_ajaran SET tahun_ajaran = ?, status = ? WHERE tahun_ajaran_id = ?";
+        String sql = "UPDATE tahun_ajaran SET tahun_ajaran = ? WHERE tahun_ajaran_id = ?";
         Connection conn = null;
         try {
             conn = DatabaseConnection.getConnection();
             try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
                 pstmt.setString(1, tahunAjaranField.getText());
-                pstmt.setString(2, statusComboBox.getValue());
-                pstmt.setInt(3, selectedTahunAjaran.getTahunAjaranId());
+                pstmt.setInt(2, selectedTahunAjaran.getTahunAjaranId());
                 pstmt.executeUpdate();
                 showAlert(Alert.AlertType.INFORMATION, "Sukses", "Tahun Ajaran berhasil diperbarui.");
             }
@@ -235,17 +224,12 @@ public class KelolaTahunAjaranController implements Initializable {
         tahunAjaranTableView.getSelectionModel().clearSelection();
         selectedTahunAjaran = null;
         tahunAjaranField.clear();
-        statusComboBox.setValue(null);
         saveButton.setText("Simpan");
     }
 
     private boolean isFormValid() {
         String taText = tahunAjaranField.getText();
-        String statusValue = statusComboBox.getValue();
 
-        if (taText.isEmpty() || statusValue == null) {
-            return false;
-        }
         // Validasi format tahun ajaran: YYYY/YYYY (misal 2024/2025)
         if (!taText.matches("\\d{4}/\\d{4}")) {
             showAlert(Alert.AlertType.WARNING, "Format Salah", "Format Tahun Ajaran harus YYYY/YYYY (contoh: 2024/2025).");

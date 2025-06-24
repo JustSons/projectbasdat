@@ -99,12 +99,12 @@ public class KelolaJadwalController {
 
     private void loadKelasData() {
         kelasList.clear();
-        String sql = "SELECT k.kelas_id, k.nama_kelas, ta.tahun_ajaran_id, ta.tahun_ajaran, ta.status " +
+        String sql = "SELECT k.kelas_id, k.nama_kelas, ta.tahun_ajaran_id, ta.tahun_ajaran " +
                 "FROM kelas k JOIN tahun_ajaran ta ON k.tahun_ajaran_id = ta.tahun_ajaran_id " +
                 "ORDER BY k.nama_kelas ASC";
         try (Connection conn = DatabaseConnection.getConnection(); Statement stmt = conn.createStatement(); ResultSet rs = stmt.executeQuery(sql)) {
             while (rs.next()) {
-                TahunAjaran ta = new TahunAjaran(rs.getInt("tahun_ajaran_id"), rs.getString("tahun_ajaran"), rs.getString("status"));
+                TahunAjaran ta = new TahunAjaran(rs.getInt("tahun_ajaran_id"), rs.getString("tahun_ajaran"));
                 kelasList.add(new Kelas(rs.getInt("kelas_id"), rs.getString("nama_kelas"), ta, null));
             }
             kelasComboBox.setItems(kelasList);
@@ -145,7 +145,7 @@ public class KelolaJadwalController {
     private void loadJadwalData() {
         jadwalList.clear();
         String sql = "SELECT j.jadwal_id, j.hari, j.jam_mulai, j.jam_selesai, " +
-                "k.kelas_id, k.nama_kelas, ta.tahun_ajaran_id, ta.tahun_ajaran, ta.status, " +
+                "k.kelas_id, k.nama_kelas, ta.tahun_ajaran_id, ta.tahun_ajaran, " +
                 "s.staff_id, s.nama_staff, " +
                 "mp.mapel_id, mp.kode_mapel, mp.nama_mapel " +
                 "FROM jadwal j " +
@@ -156,7 +156,7 @@ public class KelolaJadwalController {
                 "ORDER BY j.hari, j.jam_mulai";
         try (Connection conn = DatabaseConnection.getConnection(); Statement stmt = conn.createStatement(); ResultSet rs = stmt.executeQuery(sql)) {
             while (rs.next()) {
-                TahunAjaran ta = new TahunAjaran(rs.getInt("tahun_ajaran_id"), rs.getString("tahun_ajaran"), rs.getString("status"));
+                TahunAjaran ta = new TahunAjaran(rs.getInt("tahun_ajaran_id"), rs.getString("tahun_ajaran"));
                 Kelas kelas = new Kelas(rs.getInt("kelas_id"), rs.getString("nama_kelas"), ta, null);
                 Staff guru = new Staff(rs.getInt("staff_id"), rs.getString("nama_staff"));
                 MataPelajaran mapel = new MataPelajaran(rs.getInt("mapel_id"), rs.getString("kode_mapel"), rs.getString("nama_mapel"));

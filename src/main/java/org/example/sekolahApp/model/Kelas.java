@@ -19,7 +19,7 @@ public class Kelas {
         this.waliKelas = waliKelas;
     }
     public Kelas(int kelasId, String namaKelas) {
-        this(kelasId, namaKelas, new TahunAjaran(0, "", ""), null); // Memberi objek default agar tidak null
+        this(kelasId, namaKelas, new TahunAjaran(0, ""), null); // Memberi objek default agar tidak null
     }
 
 

@@ -62,7 +62,7 @@ public class InputNilaiController {
 
             // Gunakan loop 'while' untuk memastikan semua hasil query dimuat, bukan hanya satu.
             while (rs.next()) {
-                tahunAjaranList.add(new TahunAjaran(rs.getInt("tahun_ajaran_id"), rs.getString("tahun_ajaran"), rs.getString("status")));
+                tahunAjaranList.add(new TahunAjaran(rs.getInt("tahun_ajaran_id"), rs.getString("tahun_ajaran")));
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -73,7 +73,6 @@ public class InputNilaiController {
         // Otomatis pilih tahun ajaran yang aktif sebagai default jika ada.
         if (!tahunAjaranList.isEmpty()) {
             TahunAjaran defaultSelection = tahunAjaranList.stream()
-                    .filter(ta -> "aktif".equalsIgnoreCase(ta.getStatus()))
                     .findFirst()
                     .orElse(tahunAjaranList.get(0)); // Jika tidak ada yang aktif, pilih yang paling atas
 

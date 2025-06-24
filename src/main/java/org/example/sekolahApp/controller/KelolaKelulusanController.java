@@ -58,7 +58,6 @@ public class KelolaKelulusanController implements Initializable {
 
         if (!tahunAjaranList.isEmpty()) {
             Optional<TahunAjaran> activeYear = tahunAjaranList.stream()
-                    .filter(ta -> "aktif".equalsIgnoreCase(ta.getStatus()))
                     .findFirst();
 
             if (activeYear.isPresent()) {
@@ -82,10 +81,10 @@ public class KelolaKelulusanController implements Initializable {
 
     private void loadTahunAjaranData() {
         tahunAjaranList.clear();
-        String sql = "SELECT tahun_ajaran_id, tahun_ajaran, status FROM tahun_ajaran ORDER BY tahun_ajaran DESC";
+        String sql = "SELECT tahun_ajaran_id, tahun_ajaran FROM tahun_ajaran ORDER BY tahun_ajaran DESC";
         try (Connection conn = DatabaseConnection.getConnection(); Statement stmt = conn.createStatement(); ResultSet rs = stmt.executeQuery(sql)) {
             while (rs.next()) {
-                tahunAjaranList.add(new TahunAjaran(rs.getInt("tahun_ajaran_id"), rs.getString("tahun_ajaran"), rs.getString("status")));
+                tahunAjaranList.add(new TahunAjaran(rs.getInt("tahun_ajaran_id"), rs.getString("tahun_ajaran")));
             }
             tahunAjaranComboBox.setItems(tahunAjaranList);
             System.out.println("DEBUG: Berhasil memuat " + tahunAjaranList.size() + " tahun ajaran.");

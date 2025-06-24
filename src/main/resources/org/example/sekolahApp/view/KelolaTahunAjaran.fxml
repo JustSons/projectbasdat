@@ -31,8 +31,6 @@
                     <children>
                         <Label text="Tahun Ajaran" GridPane.rowIndex="0" />
                         <TextField fx:id="tahunAjaranField" promptText="Contoh: 2024/2025" GridPane.columnIndex="1" GridPane.rowIndex="0" />
-                        <Label text="Status" GridPane.rowIndex="1" />
-                        <ComboBox fx:id="statusComboBox" prefWidth="200.0" GridPane.columnIndex="1" GridPane.rowIndex="1" />
                     </children>
                 </GridPane>
                 <HBox alignment="CENTER_LEFT" spacing="10.0">
@@ -63,7 +61,6 @@
                     <columns>
                         <TableColumn fx:id="idColumn" prefWidth="50.0" text="ID" />
                         <TableColumn fx:id="tahunAjaranColumn" prefWidth="250.0" text="Tahun Ajaran" />
-                        <TableColumn fx:id="statusColumn" prefWidth="150.0" text="Status" />
                     </columns>
                     <columnResizePolicy>
                         <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
