@@ -52,9 +52,7 @@ public class InputNilaiController {
         // Selalu pastikan list kosong sebelum diisi ulang untuk menghindari duplikat
         tahunAjaranList.clear();
 
-        // PERBAIKAN: Hapus "WHERE status = 'aktif'" untuk mengambil SEMUA tahun ajaran.
-        // Diurutkan berdasarkan tahun terbaru.
-        String sql = "SELECT tahun_ajaran_id, tahun_ajaran, status FROM tahun_ajaran ORDER BY tahun_ajaran DESC";
+        String sql = "SELECT tahun_ajaran_id, tahun_ajaran FROM tahun_ajaran ORDER BY tahun_ajaran DESC";
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql);
@@ -95,6 +93,12 @@ public class InputNilaiController {
     private void loadKelasByTahunAjaran() {
         TahunAjaran selectedTahun = tahunAjaranComboBox.getValue();
         if (selectedTahun == null) return;
+
+        // --- TAMBAHKAN INI UNTUK DEBUGGING ---
+        int guruId = UserSession.getInstance().getReferenceId();
+        int tahunAjaranId = selectedTahun.getTahunAjaranId();
+        System.out.println("Mencari kelas untuk guru ID: " + guruId + " di tahun ajaran ID: " + tahunAjaranId);
+        // ------------------------------------
 
         // Kosongkan semua list turunan sebelum diisi ulang
         kelasList.clear();
