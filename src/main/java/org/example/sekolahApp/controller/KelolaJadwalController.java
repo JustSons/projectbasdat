@@ -101,7 +101,7 @@ public class KelolaJadwalController {
         kelasList.clear();
         String sql = "SELECT k.kelas_id, k.nama_kelas, ta.tahun_ajaran_id, ta.tahun_ajaran, ta.status " +
                 "FROM kelas k JOIN tahun_ajaran ta ON k.tahun_ajaran_id = ta.tahun_ajaran_id " +
-                "WHERE ta.status = 'aktif' ORDER BY k.nama_kelas ASC";
+                "ORDER BY k.nama_kelas ASC";
         try (Connection conn = DatabaseConnection.getConnection(); Statement stmt = conn.createStatement(); ResultSet rs = stmt.executeQuery(sql)) {
             while (rs.next()) {
                 TahunAjaran ta = new TahunAjaran(rs.getInt("tahun_ajaran_id"), rs.getString("tahun_ajaran"), rs.getString("status"));
