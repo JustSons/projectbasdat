@@ -73,8 +73,8 @@ public class GuruDashboardController implements Initializable {
                 String jabatan = rs.getString("jabatan");
                 welcomeLabel.setText("Selamat Datang, " + namaGuru);
                 namaGuruLabel.setText(namaGuru);
-                nipLabel.setText("NIP: " + (nip != null ? nip : "-"));
-                jabatanLabel.setText("Jabatan: " + jabatan);
+                nipLabel.setText((nip != null ? nip : "-"));
+                jabatanLabel.setText(jabatan);
             } else {
                 welcomeLabel.setText("Data guru tidak ditemukan");
             }
